@@ -287,6 +287,7 @@ function recordActivity(streak, setStreak) {
 function isGoodForBuilder(card) {
   const zh = card.zh;
   if (card.unitName.includes("📐")) return false;
+  if (card.kind === "vocab") return false;
   if (/[\/（(]/.test(zh)) return false;
   if (/[A-Za-z]/.test(zh)) return false;
   if (zh.includes("……") || zh.includes("___")) return false;
@@ -342,12 +343,13 @@ function ProgressRing({ pct, size = 84, color = "#FF9D3D" }) {
 }
 
 // ---------- Navegación principal (tabbar fijo) ----------
-const HUB_MODES = ["menu", "patterns", "buildHub", "writingHub", "settings"];
+const HUB_MODES = ["menu", "patterns", "buildHub", "writingHub", "vocabHub", "settings"];
 const TABS = [
   { key: "menu", icon: "🏠", label: "Inicio" },
   { key: "patterns", icon: "📐", label: "Patrones" },
   { key: "buildHub", icon: "✏️", label: "Construir" },
   { key: "writingHub", icon: "🖌️", label: "Escritura" },
+  { key: "vocabHub", icon: "🔤", label: "Vocabulario" },
   { key: "settings", icon: "⚙️", label: "Opciones" },
 ];
 
@@ -386,7 +388,7 @@ function TabBar({ activeMode, setMode }) {
             <button key={tab.key} className="gwc-tab" onClick={() => setMode(tab.key)} style={{
               display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
               background: "none", border: "none", cursor: "pointer",
-              padding: "4px 14px", color: active ? "#FF9D3D" : "rgba(255,255,255,0.45)",
+              padding: "4px 6px", color: active ? "#FF9D3D" : "rgba(255,255,255,0.45)",
               fontSize: 10, fontFamily: "sans-serif", fontWeight: 700,
               transition: "color 0.15s ease, transform 0.1s ease"
             }}>
@@ -405,6 +407,7 @@ function App() {
   const [selectedUnits, setSelectedUnits] = useState(initialPrefs.selectedUnits);
   const [mode, setMode] = useState("menu");
   const [deck, setDeck] = useState([]);
+  const [lastDeckKind, setLastDeckKind] = useState("study");
   const [currentIdx, setCurrentIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [showPinyin, setShowPinyin] = useState(initialPrefs.showPinyin);
@@ -659,6 +662,19 @@ function App() {
     setFlipped(false);
     setShowExample(false);
     setRatings({});
+    setLastDeckKind("study");
+    setMode("study");
+  };
+
+  const vocabCards = ALL_CARDS.filter(c => c.kind === "vocab" && selectedUnits.includes(c.unit));
+  const startVocab = () => {
+    const shuffled = [...vocabCards].sort(() => Math.random() - 0.5);
+    setDeck(shuffled);
+    setCurrentIdx(0);
+    setFlipped(false);
+    setShowExample(false);
+    setRatings({});
+    setLastDeckKind("vocab");
     setMode("study");
   };
 
@@ -996,7 +1012,7 @@ function App() {
           <button onClick={startBuild} disabled={buildableCards.length === 0} style={{ padding: "14px 0", borderRadius: 14, border: "2px solid rgba(0,131,143,0.4)", background: "transparent", color: buildableCards.length === 0 ? "#555" : "#4DD0E1", fontSize: 14, cursor: buildableCards.length === 0 ? "not-allowed" : "pointer" }}>
             ✏️ Construir frases con estas unidades
           </button>
-          <button onClick={startStudy} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#999", fontSize: 13, cursor: "pointer" }}>
+          <button onClick={lastDeckKind === "vocab" ? startVocab : startStudy} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#999", fontSize: 13, cursor: "pointer" }}>
             🔀 Nueva ronda completa
           </button>
           <button onClick={() => setMode("menu")} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#888", fontSize: 14, cursor: "pointer" }}>
@@ -1199,6 +1215,37 @@ function App() {
         {writableChars.length === 0 && (
           <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
             Selecciona unidades en Opciones para practicar sus caracteres.
+          </p>
+        )}
+      </div>
+      <TabBar activeMode={mode} setMode={setMode} />
+    </div>
+  );
+
+  // Tab: Vocabulario — solo los términos, con su ejemplo como contexto
+  if (mode === "vocabHub") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
+      <div style={{ maxWidth: 480, width: "100%" }}>
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <span style={{ color: "#00ACC1", fontSize: 15, fontWeight: "bold" }}>🔤 Vocabulario</span>
+        </div>
+        <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
+          Estudia solo los términos de tus unidades seleccionadas — carácter, pinyin y significado, con una frase de ejemplo.
+        </p>
+
+        <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 16, marginBottom: 14, textAlign: "center" }}>
+          <button onClick={startVocab} disabled={vocabCards.length === 0} style={{
+            width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
+            background: vocabCards.length === 0 ? "#444" : "linear-gradient(135deg, #00ACC1, #4DD0E1)",
+            color: "white", fontSize: 15, fontWeight: "bold",
+            cursor: vocabCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
+          }}>
+            🔤 Comenzar · {vocabCards.length} términos
+          </button>
+        </div>
+        {vocabCards.length === 0 && (
+          <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
+            Todavía no hay vocabulario propio para las unidades seleccionadas. Prueba con unidades 13 a 25 en Opciones.
           </p>
         )}
       </div>
