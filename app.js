@@ -233,7 +233,7 @@ function isDue(cardId, progress) {
 // ---------- Preferencias guardadas (unidades, dirección, audio, pinyin, nivel) ----------
 const PREFS_KEY = "gwc_prefs_v1";
 const DEFAULT_PREFS = {
-  selectedUnits: [1,2,3,4,5,6,7,8,9,10,13,14,15,16,17,18,19,20,21,22],
+  selectedUnits: [1,2,3,4,5,6,7,8,9,10,13,14,15,16,17,18,19,20,21,22,23,24,25],
   studyDir: "es→zh",
   showPinyin: true,
   autoPlay: true,
@@ -307,12 +307,12 @@ function isSpeakableZh(text) {
 const PATTERN_CATEGORIES = [
   { key: "medidas", icon: "📏", label: "Medidas y cantidades", color: "#FF6B35", ids: [40,41,250,251,181,182,183,254,162,163,314,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,353] },
   { key: "posesion", icon: "🔑", label: "的 y posesión", color: "#7B1FA2", ids: [157,158,247,248,252,354,355,356,357,358,359,360,361,362,363,364,365,366,367,368,369,370,371,372,373] },
-  { key: "tiempo", icon: "⏰", label: "Tiempo", color: "#00695C", ids: [42,125,126,127,180,374,375,376,377,378,379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,584] },
-  { key: "poder", icon: "🚦", label: "Poder y permiso", color: "#1565C0", ids: [124,164,253,286,394,395,396,397,398,399,400,401,402,403,404,405,406,407,408,409,583,600] },
+  { key: "tiempo", icon: "⏰", label: "Tiempo", color: "#00695C", ids: [42,125,126,127,180,374,375,376,377,378,379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,584,629] },
+  { key: "poder", icon: "🚦", label: "Poder y permiso", color: "#1565C0", ids: [124,164,253,286,394,395,396,397,398,399,400,401,402,403,404,405,406,407,408,409,583,600,628,656] },
   { key: "ubicacion", icon: "🧭", label: "Ubicación y dirección", color: "#2E7D32", ids: [173,174,175,223,224,225,226,269,270,271,272,222,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457] },
-  { key: "preguntas", icon: "❓", label: "Preguntas especiales", color: "#C62828", ids: [170,171,172,176,268,273,166,458,459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,613] },
-  { key: "matices", icon: "🔀", label: "Palabras que se confunden", color: "#AD1457", ids: [184,185,227,228,229,249,285,255,486,487,488,489,490,491,492,493,494,495,496,497,498,499,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,599,612] },
-  { key: "estructura", icon: "✍️", label: "Estructura de oración", color: "#558B2F", ids: [165,169,298,299,312,313,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,601,615] },
+  { key: "preguntas", icon: "❓", label: "Preguntas especiales", color: "#C62828", ids: [170,171,172,176,268,273,166,458,459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,613,655] },
+  { key: "matices", icon: "🔀", label: "Palabras que se confunden", color: "#AD1457", ids: [184,185,227,228,229,249,285,255,486,487,488,489,490,491,492,493,494,495,496,497,498,499,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,599,612,627] },
+  { key: "estructura", icon: "✍️", label: "Estructura de oración", color: "#558B2F", ids: [165,169,298,299,312,313,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,601,615,641,642,643] },
   { key: "tonos", icon: "🔤", label: "Tonos y radicales", color: "#5E35B1", ids: [159,160,161,130,167,168,177,178,179,230,256,257] },
   { key: "clasificadores", icon: "🔢", label: "量词 · Measure words", color: "#F9A825", ids: [542,543,544,545,546,547,548,549,550,551,552,553,554,555,556,557,558,559,560,561,562,563,564,565,566,567] },
 ];
@@ -902,8 +902,8 @@ function App() {
 
           {/* Book 2 */}
           <p style={{ color: "#00838F", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>📗 LIBRO 2</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
-            {units.filter(u => u > 12 && u !== 30).map(u => {
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginBottom: 12 }}>
+            {units.filter(u => u >= 13 && u <= 22).map(u => {
               const uc = UNIT_COLORS[u];
               const sel = selectedUnits.includes(u);
               const l2num = u - 12;
@@ -917,6 +917,29 @@ function App() {
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2
                 }}>
                   <span style={{ fontSize: 12 }}>U{l2num}</span>
+                  <span style={{ fontSize: 9, opacity: 0.85 }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Book 3 */}
+          <p style={{ color: "#0277BD", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>📘 LIBRO 3</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+            {units.filter(u => u >= 23 && u !== 30).map(u => {
+              const uc = UNIT_COLORS[u];
+              const sel = selectedUnits.includes(u);
+              const l3num = u - 22;
+              const pct = unitMastery(u);
+              return (
+                <button key={u} onClick={() => toggleUnit(u)} style={{
+                  padding: "8px 4px", borderRadius: 10, border: `2px solid ${sel ? uc.accent : "rgba(255,255,255,0.1)"}`,
+                  background: sel ? uc.accent : "transparent",
+                  color: sel ? "white" : "#888", cursor: "pointer", fontSize: 10,
+                  fontFamily: "sans-serif", fontWeight: sel ? "bold" : "normal",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 2
+                }}>
+                  <span style={{ fontSize: 12 }}>U{l3num}</span>
                   <span style={{ fontSize: 9, opacity: 0.85 }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
                 </button>
               );
