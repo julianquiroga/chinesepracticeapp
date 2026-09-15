@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="长城汉语">
 <meta name="theme-color" content="#1a0a00">
+<link rel="manifest" href="./manifest.json">
 <title>长城汉语 · Flashcards</title>
 <style>
   * { box-sizing: border-box; }
@@ -34,6 +35,15 @@
 <script type="text/babel" data-presets="react">
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(<App />);
+</script>
+
+<!-- Soporte offline: cachea la app para practicar sin conexión tras la primera carga -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
 </script>
 </body>
 </html>
