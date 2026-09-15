@@ -1821,6 +1821,7 @@ function App() {
   }
 
   // Study mode
+  if (!card) return null;
   return (
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
