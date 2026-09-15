@@ -80,12 +80,15 @@ function renderPinyinTone(text, dark) {
 function useSpeech() {
   const [speaking, setSpeaking] = useState(false);
   const [voiceReady, setVoiceReady] = useState(false);
+  const [speechError, setSpeechError] = useState(false);
   const voiceRef = useRef(null);
+  const watchdogRef = useRef(null);
+  const utteranceRef = useRef(null);
 
   useEffect(() => {
     const load = () => {
       const voices = window.speechSynthesis.getVoices();
-      const zh = voices.find(v => v.lang.startsWith("zh")) || 
+      const zh = voices.find(v => v.lang.startsWith("zh")) ||
                  voices.find(v => v.lang.includes("CN")) ||
                  voices.find(v => v.lang.includes("TW"));
       voiceRef.current = zh || null;
@@ -93,24 +96,46 @@ function useSpeech() {
     };
     load();
     window.speechSynthesis.onvoiceschanged = load;
-    return () => { window.speechSynthesis.onvoiceschanged = null; };
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      if (watchdogRef.current) clearTimeout(watchdogRef.current);
+    };
   }, []);
 
   const speak = useCallback((text) => {
     if (!text) return;
+    setSpeechError(false);
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = "zh-CN";
-    utt.rate = 0.85;
-    utt.pitch = 1;
-    if (voiceRef.current) utt.voice = voiceRef.current;
-    utt.onstart = () => setSpeaking(true);
-    utt.onend = () => setSpeaking(false);
-    utt.onerror = () => setSpeaking(false);
-    window.speechSynthesis.speak(utt);
+    if (watchdogRef.current) clearTimeout(watchdogRef.current);
+    // Chrome en Android puede "tragarse" speak() en silencio si se llama en el
+    // mismo tick que cancel() — un respiro corto evita que la cola quede en un
+    // estado inconsistente (bug conocido, no específico de esta app).
+    setTimeout(() => {
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = "zh-CN";
+      utt.rate = 0.85;
+      utt.pitch = 1;
+      if (voiceRef.current) utt.voice = voiceRef.current;
+      let handled = false;
+      utt.onstart = () => { handled = true; setSpeaking(true); };
+      utt.onend = () => { handled = true; setSpeaking(false); };
+      utt.onerror = () => { handled = true; setSpeaking(false); setSpeechError(true); };
+      // Guarda una referencia viva del utterance: en Chrome/Android el motor puede
+      // recolectarlo por GC antes de reproducirlo y descartar el speak() sin avisar
+      // si no queda ninguna referencia fuerte al objeto.
+      utteranceRef.current = utt;
+      window.speechSynthesis.speak(utt);
+      // Si ni onstart ni onend ni onerror disparan, el motor ignoró la orden en
+      // silencio — típicamente porque el dispositivo no tiene instalada una voz
+      // de chino. Sin esto, el botón "Escuchar" simplemente no hace nada y no
+      // hay forma de saber por qué.
+      watchdogRef.current = setTimeout(() => {
+        if (!handled) setSpeechError(true);
+      }, 3000);
+    }, 60);
   }, []);
 
-  return { speak, speaking, voiceReady };
+  return { speak, speaking, voiceReady, speechError };
 }
 
 
@@ -418,41 +443,55 @@ function TabBar({ activeMode, setMode }) {
 // variant: "icon" (pastilla chica, dentro de tarjetas/listas), "label" (pastilla
 // grande con texto "Escuchar"/"Reproduciendo...", color de la unidad) o "front"
 // (versión de la portada de la flashcard, con paleta naranja fija).
-function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", label = "Escuchar", style }) {
+function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", label = "Escuchar", error = false, style }) {
   if (!isSpeakableZh(text)) return null;
   const onClick = (e) => { if (e) e.stopPropagation(); speak(text); };
+  const errorHint = error && (
+    <p style={{ color: "#F44336", fontSize: 11, textAlign: "center", margin: "4px 0 0 0", maxWidth: 280, lineHeight: 1.4 }}>
+      ⚠️ No se pudo reproducir el audio. Revisá que tu teléfono tenga instalada la voz de chino (Ajustes → Accesibilidad/Idiomas → Texto a voz).
+    </p>
+  );
   if (variant === "label") {
     return (
-      <button onClick={onClick} style={{
-        background: speaking ? `${color}33` : `${color}15`, border: `1px solid ${color}66`,
-        borderRadius: 30, padding: "7px 18px", color, fontSize: 14, cursor: "pointer",
-        marginBottom: 10, transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
-        ...style
-      }}>
-        {speaking ? "🔊 Reproduciendo..." : `🔊 ${label}`}
-      </button>
+      <>
+        <button onClick={onClick} style={{
+          background: speaking ? `${color}33` : `${color}15`, border: `1px solid ${color}66`,
+          borderRadius: 30, padding: "7px 18px", color, fontSize: 14, cursor: "pointer",
+          marginBottom: 10, transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
+          ...style
+        }}>
+          {speaking ? "🔊 Reproduciendo..." : `🔊 ${label}`}
+        </button>
+        {errorHint}
+      </>
     );
   }
   if (variant === "front") {
     return (
-      <button onClick={onClick} style={{
-        background: speaking ? "rgba(255,107,53,0.3)" : "rgba(255,255,255,0.1)",
-        border: `1px solid ${speaking ? "#FF6B35" : "rgba(255,255,255,0.2)"}`,
-        borderRadius: 30, padding: "8px 18px", color: speaking ? "#FF9D3D" : "#aaa",
-        fontSize: 15, cursor: "pointer", marginBottom: 12, transition: "all 0.2s",
-        display: "flex", alignItems: "center", gap: 6,
-        ...style
-      }}>
-        {speaking ? "🔊 Reproduciendo..." : `🔊 ${label}`}
-      </button>
+      <>
+        <button onClick={onClick} style={{
+          background: speaking ? "rgba(255,107,53,0.3)" : "rgba(255,255,255,0.1)",
+          border: `1px solid ${speaking ? "#FF6B35" : "rgba(255,255,255,0.2)"}`,
+          borderRadius: 30, padding: "8px 18px", color: speaking ? "#FF9D3D" : "#aaa",
+          fontSize: 15, cursor: "pointer", marginBottom: 12, transition: "all 0.2s",
+          display: "flex", alignItems: "center", gap: 6,
+          ...style
+        }}>
+          {speaking ? "🔊 Reproduciendo..." : `🔊 ${label}`}
+        </button>
+        {errorHint}
+      </>
     );
   }
   return (
-    <button onClick={onClick} style={{
-      background: "none", border: `1px solid ${color}66`, borderRadius: 20,
-      padding: "3px 8px", color, fontSize: 12, cursor: "pointer", flexShrink: 0,
-      ...style
-    }}>🔊</button>
+    <>
+      <button onClick={onClick} style={{
+        background: "none", border: `1px solid ${color}66`, borderRadius: 20,
+        padding: "3px 8px", color, fontSize: 12, cursor: "pointer", flexShrink: 0,
+        ...style
+      }}>🔊</button>
+      {errorHint}
+    </>
   );
 }
 
@@ -545,7 +584,7 @@ function App() {
   const [charProgress, setCharProgress] = useState(() => loadProgress(CHAR_STORAGE_KEY));
   const [streak, setStreak] = useState(() => loadStreak());
   const [dailyCap, setDailyCap] = useState(initialPrefs.dailyCap);
-  const { speak, speaking, voiceReady } = useSpeech();
+  const { speak, speaking, voiceReady, speechError } = useSpeech();
 
   const units = [...new Set(ALL_CARDS.map(c => c.unit))].sort((a,b)=>a-b);
 
@@ -1614,7 +1653,7 @@ function App() {
                 <div style={{ fontSize: 38, fontWeight: "bold", color: mixedColor.accent, marginBottom: 4, textAlign: "center" }}>{mixedCard.zh}</div>
                 {showPinyin && <div style={{ fontSize: 15, marginBottom: 6, color: TONE_COLORS_LIGHT[0] }}>{renderPinyinTone(mixedCard.py, false)}</div>}
                 <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{mixedCard.es}</div>
-                <SpeakButton text={mixedCard.zh} speak={speak} speaking={speaking} color={mixedColor.accent} variant="label" label="Escuchar de nuevo" />
+                <SpeakButton text={mixedCard.zh} speak={speak} speaking={speaking} color={mixedColor.accent} variant="label" label="Escuchar de nuevo" error={speechError} />
               </>
             )}
           </div>
@@ -1867,7 +1906,7 @@ function App() {
               {studyDir === "zh→es" && (
                 <>
                   <div style={{ fontSize: 42, fontWeight: "bold", color: "white", marginBottom: 12, textAlign: "center" }}>{card.zh}</div>
-                  <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" />
+                  <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" error={speechError} />
                   <FrontPinyinReveal pinyin={card.py} cardId={card.id} showPinyin={showPinyin} />
                 </>
               )}
@@ -1878,7 +1917,7 @@ function App() {
                 isSpeakableZh(card.zh) ? (
                   <>
                     <div style={{ fontSize: 52, marginBottom: 10 }}>🔊</div>
-                    <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" label="Escuchar de nuevo" />
+                    <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" label="Escuchar de nuevo" error={speechError} />
                     <p style={{ color: "#888", fontSize: 12, textAlign: "center", margin: 0 }}>Recuerda el pinyin y el significado antes de revelar</p>
                   </>
                 ) : (
@@ -1897,7 +1936,7 @@ function App() {
               <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{back_es}</div>
 
               {/* Speaker button on back */}
-              <SpeakButton text={card.zh} speak={speak} speaking={speaking} color={color.accent} variant="label" label="Escuchar de nuevo" />
+              <SpeakButton text={card.zh} speak={speak} speaking={speaking} color={color.accent} variant="label" label="Escuchar de nuevo" error={speechError} />
 
               <button onClick={(e) => { e.stopPropagation(); setShowExample(s => !s); }} style={{
                 background: "none", border: `1px solid ${color.accent}44`, borderRadius: 20, padding: "6px 14px",
