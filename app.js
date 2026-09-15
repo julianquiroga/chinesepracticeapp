@@ -144,25 +144,13 @@ function ExampleBox({ card, color, speak, speaking, showPinyin }) {
         <span style={{ fontSize: 15, color: color.accent, fontWeight: "bold", textAlign: "center", lineHeight: 1.5 }}>
           {card.exZh}
         </span>
-        {isSpeakableZh(card.exZh) && (
-          <button onClick={() => speak(card.exZh)} style={{
-            background: speaking ? `${color.accent}33` : "transparent",
-            border: `1px solid ${color.accent}55`, borderRadius: 20,
-            padding: "3px 8px", color: color.accent, fontSize: 12, cursor: "pointer", flexShrink: 0
-          }}>🔊</button>
-        )}
+        <SpeakButton text={card.exZh} speak={speak} speaking={speaking} color={color.accent}
+          style={{ background: speaking ? `${color.accent}33` : "transparent" }} />
       </div>
 
       {/* Pinyin reveal */}
       {showPinyin && (!showPy ? (
-        <button onClick={() => setShowPy(true)} style={{
-          display: "block", width: "100%", marginBottom: 6,
-          background: `${color.accent}10`, border: `1px dashed ${color.accent}55`,
-          borderRadius: 10, padding: "6px 0", color: color.accent,
-          fontSize: 12, cursor: "pointer"
-        }}>
-          拼 Ver pinyin
-        </button>
+        <RevealButton onClick={() => setShowPy(true)} color={color.accent}>拼 Ver pinyin</RevealButton>
       ) : (
         <p style={{ fontSize: 13, textAlign: "center", margin: "0 0 6px 0", fontStyle: "italic", color: TONE_COLORS_LIGHT[0] }}>
           {renderPinyinTone(card.exPy, false)}
@@ -171,14 +159,7 @@ function ExampleBox({ card, color, speak, speaking, showPinyin }) {
 
       {/* Translation reveal */}
       {!showEs ? (
-        <button onClick={() => setShowEs(true)} style={{
-          display: "block", width: "100%",
-          background: `${color.accent}10`, border: `1px dashed ${color.accent}55`,
-          borderRadius: 10, padding: "6px 0", color: color.accent,
-          fontSize: 12, cursor: "pointer"
-        }}>
-          🇲🇽 Ver traducción
-        </button>
+        <RevealButton onClick={() => setShowEs(true)} color={color.accent}>🇲🇽 Ver traducción</RevealButton>
       ) : (
         <p style={{ fontSize: 13, color: "#444", textAlign: "center", margin: "0", lineHeight: 1.5 }}>
           {card.exEs}
@@ -192,23 +173,28 @@ function ExampleBox({ card, color, speak, speaking, showPinyin }) {
 const RATING = { know: "know", almost: "almost", dontKnow: "dontKnow" };
 
 // ---------- Repetición espaciada + progreso guardado ----------
+// STORAGE_KEY guarda el progreso de las tarjetas (flashcards/vocabulario/construir);
+// CHAR_STORAGE_KEY guarda el progreso de los CARACTERES en modo Escritura por separado,
+// porque un carácter no siempre corresponde 1:1 a una tarjeta. Ambos usan el mismo
+// esquema de "cajas" de Leitner, por eso comparten computeNextEntry/isDue.
 const STORAGE_KEY = "gwc_srs_progress_v1";
+const CHAR_STORAGE_KEY = "gwc_char_progress_v1";
 const BOX_INTERVAL_DAYS = [1, 2, 4, 7, 14, 30]; // índice = número de caja
 const MAX_BOX = BOX_INTERVAL_DAYS.length - 1;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function loadProgress() {
+function loadProgress(key = STORAGE_KEY) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : {};
   } catch (e) {
     return {};
   }
 }
 
-function saveProgress(progress) {
+function saveProgress(progress, key = STORAGE_KEY) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    localStorage.setItem(key, JSON.stringify(progress));
   } catch (e) {
     // localStorage lleno o deshabilitado — falla en silencio, no rompe la app
   }
@@ -238,6 +224,7 @@ const DEFAULT_PREFS = {
   showPinyin: true,
   autoPlay: true,
   builderLevel: "easy",
+  dailyCap: 0, // 0 = sin límite de tarjetas de repaso por día
 };
 
 function loadPrefs() {
@@ -283,10 +270,17 @@ function recordActivity(streak, setStreak) {
   setStreak(updated);
 }
 
+// Una tarjeta es "de patrón" (gramática de referencia) si su unidad lleva la marca 📐.
+// Único punto de esta comprobación — evita repetir el mismo string-check en cada lugar
+// que necesita distinguir tarjetas de patrón de tarjetas normales.
+function isPatternCard(card) {
+  return !!(card && card.unitName && card.unitName.includes("📐"));
+}
+
 // ---------- Modo: Construir frases ----------
 function isGoodForBuilder(card) {
   const zh = card.zh;
-  if (card.unitName.includes("📐")) return false;
+  if (isPatternCard(card)) return false;
   if (card.kind === "vocab") return false;
   if (/[\/（(]/.test(zh)) return false;
   if (/[A-Za-z]/.test(zh)) return false;
@@ -301,6 +295,22 @@ function isSpeakableZh(text) {
   if (!text) return false;
   return !/[（(a-zA-Z]/.test(text.replace(/[❌✅]/g, ""));
 }
+
+// ---------- Libros ----------
+// El contenido viene de 3 libros de texto distintos, cada uno con su propia
+// numeración de unidades dentro de la app: Libro 1 = unidades 1-10 (sin offset),
+// Libro 2 = unidades 13-22 (unidad visible = unidad - 12), Libro 3 = unidades
+// 23-25 (unidad visible = unidad - 22). La unidad 30 es una pseudo-unidad de
+// referencia cruzada y no pertenece a ningún libro. Punto único de esta lógica:
+// antes estaba duplicada (y desactualizada para el Libro 3) en varios lugares.
+function bookInfo(unit) {
+  if (unit >= 1 && unit <= 10) return { book: 1, num: unit };
+  if (unit >= 13 && unit <= 22) return { book: 2, num: unit - 12 };
+  if (unit >= 23 && unit !== 30) return { book: 3, num: unit - 22 };
+  return null; // unidad 30 (referencia) u otro caso fuera de los 3 libros
+}
+
+const SCREEN_BG = "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)";
 
 // ---------- Modo: Patrones gramaticales ----------
 // Organiza las 📐 tarjetas de gramática por TIPO de patrón, cruzando unidades.
@@ -402,6 +412,121 @@ function TabBar({ activeMode, setMode }) {
   );
 }
 
+// ---------- Componentes compartidos entre modos ----------
+
+// Botón de audio 🔊 — envuelve el chequeo isSpeakableZh + la llamada a speak().
+// variant: "icon" (pastilla chica, dentro de tarjetas/listas), "label" (pastilla
+// grande con texto "Escuchar"/"Reproduciendo...", color de la unidad) o "front"
+// (versión de la portada de la flashcard, con paleta naranja fija).
+function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", label = "Escuchar", style }) {
+  if (!isSpeakableZh(text)) return null;
+  const onClick = (e) => { if (e) e.stopPropagation(); speak(text); };
+  if (variant === "label") {
+    return (
+      <button onClick={onClick} style={{
+        background: speaking ? `${color}33` : `${color}15`, border: `1px solid ${color}66`,
+        borderRadius: 30, padding: "7px 18px", color, fontSize: 14, cursor: "pointer",
+        marginBottom: 10, transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
+        ...style
+      }}>
+        {speaking ? "🔊 Reproduciendo..." : `🔊 ${label}`}
+      </button>
+    );
+  }
+  if (variant === "front") {
+    return (
+      <button onClick={onClick} style={{
+        background: speaking ? "rgba(255,107,53,0.3)" : "rgba(255,255,255,0.1)",
+        border: `1px solid ${speaking ? "#FF6B35" : "rgba(255,255,255,0.2)"}`,
+        borderRadius: 30, padding: "8px 18px", color: speaking ? "#FF9D3D" : "#aaa",
+        fontSize: 15, cursor: "pointer", marginBottom: 12, transition: "all 0.2s",
+        display: "flex", alignItems: "center", gap: 6,
+        ...style
+      }}>
+        {speaking ? "🔊 Reproduciendo..." : `🔊 ${label}`}
+      </button>
+    );
+  }
+  return (
+    <button onClick={onClick} style={{
+      background: "none", border: `1px solid ${color}66`, borderRadius: 20,
+      padding: "3px 8px", color, fontSize: 12, cursor: "pointer", flexShrink: 0,
+      ...style
+    }}>🔊</button>
+  );
+}
+
+// Botón "revelar" con borde punteado — usado para pinyin/traducción ocultos por defecto.
+function RevealButton({ onClick, children, color = "#FF9D3D" }) {
+  return (
+    <button onClick={onClick} style={{
+      display: "block", width: "100%", background: `${color}10`,
+      border: `1px dashed ${color}55`, borderRadius: 10, padding: "6px 0",
+      color, fontSize: 12, cursor: "pointer"
+    }}>
+      {children}
+    </button>
+  );
+}
+
+// Envoltorio de las pantallas "hub" de cada modo (Construir/Escritura/Vocabulario):
+// título centrado + descripción opcional + contenido propio + tabbar.
+function HubScreen({ title, titleColor, description, mode, setMode, children }) {
+  return (
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
+      <div style={{ maxWidth: 480, width: "100%" }}>
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <span style={{ color: titleColor, fontSize: 15, fontWeight: "bold" }}>{title}</span>
+        </div>
+        {description && (
+          <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
+            {description}
+          </p>
+        )}
+        {children}
+      </div>
+      <TabBar activeMode={mode} setMode={setMode} />
+    </div>
+  );
+}
+
+// Pantalla de resultados al terminar una ronda (Flashcards/Vocabulario/Construir):
+// emoji + título + subtítulo + grilla de stats + lista de botones de acción.
+function ResultsScreen({ emoji, title, titleColor, subtitle, stats, actions }) {
+  return (
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
+      <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
+        <div style={{ fontSize: 52, marginBottom: 16 }}>{emoji}</div>
+        <h2 style={{ color: titleColor, fontSize: 24, marginBottom: 4 }}>{title}</h2>
+        <p style={{ color: "#FFD09B", marginBottom: 32, fontSize: 14 }}>{subtitle}</p>
+
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${stats.length}, 1fr)`, gap: 12, marginBottom: 32 }}>
+          {stats.map(s => (
+            <div key={s.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 8px" }}>
+              <div style={{ fontSize: 28, fontWeight: "bold", color: s.color }}>{s.count}</div>
+              <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {actions.filter(Boolean).map((a, i) => (
+            <button key={i} onClick={a.onClick} disabled={a.disabled} style={{
+              padding: "14px 0", borderRadius: 14, border: a.border || "none",
+              background: a.disabled ? "#444" : (a.background || "transparent"),
+              color: a.disabled ? "#777" : (a.color || "#888"),
+              fontSize: a.fontSize || 14, fontWeight: a.bold ? "bold" : "normal",
+              cursor: a.disabled ? "not-allowed" : "pointer"
+            }}>
+              {a.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const initialPrefs = loadPrefs();
   const [selectedUnits, setSelectedUnits] = useState(initialPrefs.selectedUnits);
@@ -417,12 +542,16 @@ function App() {
   const [animating, setAnimating] = useState(false);
   const [autoPlay, setAutoPlay] = useState(initialPrefs.autoPlay);
   const [progress, setProgress] = useState(() => loadProgress());
+  const [charProgress, setCharProgress] = useState(() => loadProgress(CHAR_STORAGE_KEY));
   const [streak, setStreak] = useState(() => loadStreak());
+  const [dailyCap, setDailyCap] = useState(initialPrefs.dailyCap);
   const { speak, speaking, voiceReady } = useSpeech();
 
   const units = [...new Set(ALL_CARDS.map(c => c.unit))].sort((a,b)=>a-b);
 
-  const dueCards = ALL_CARDS.filter(c => isDue(c.id, progress));
+  const allDueCards = ALL_CARDS.filter(c => isDue(c.id, progress));
+  // Tope diario opcional: evita sobrecargar al usuario con repasos infinitos en un solo día
+  const dueCards = dailyCap > 0 ? allDueCards.slice(0, dailyCap) : allDueCards;
   const dueCount = dueCards.length;
   const newDueCount = dueCards.filter(c => !progress[c.id]).length;
   const reviewDueCount = dueCount - newDueCount;
@@ -476,13 +605,22 @@ function App() {
     setMode("study");
   };
 
+  // ---------- Modo: Sesión mixta (intercalada) ----------
+  // Alterna, tarjeta por tarjeta, entre repaso de flashcard y práctica de
+  // escritura del carácter — la intercalación de tipos de práctica ayuda a
+  // consolidar mejor la memoria que repetir siempre la misma actividad.
+  const [mixedQueue, setMixedQueue] = useState([]);
+  const [mixedIdx, setMixedIdx] = useState(0);
+  const [mixedFlipped, setMixedFlipped] = useState(false);
+  const [mixedFromWrite, setMixedFromWrite] = useState(false); // true mientras "writing" está anidado dentro de una sesión mixta
+
   // ---------- Modo: Construir frases ----------
   const [builderLevel, setBuilderLevel] = useState(initialPrefs.builderLevel); // easy | medium | hard
 
   // Guarda preferencias automáticamente cuando cambian (va aquí porque necesita builderLevel ya declarado)
   useEffect(() => {
-    savePrefs({ selectedUnits, studyDir, showPinyin, autoPlay, builderLevel });
-  }, [selectedUnits, studyDir, showPinyin, autoPlay, builderLevel]);
+    savePrefs({ selectedUnits, studyDir, showPinyin, autoPlay, builderLevel, dailyCap });
+  }, [selectedUnits, studyDir, showPinyin, autoPlay, builderLevel, dailyCap]);
   const [buildDeck, setBuildDeck] = useState([]);
   const [buildIdx, setBuildIdx] = useState(0);
   const [pool, setPool] = useState([]);
@@ -547,10 +685,12 @@ function App() {
   const writeWriterRef = useRef(null);
 
   const writableChars = uniqueCharsForUnits(selectedUnits);
+  const writeDueChars = writableChars.filter(ch => isDue(ch, charProgress));
   const writeChar = writeDeck[writeIdx];
 
-  const startWriting = () => {
-    const shuffled = [...writableChars].sort(() => Math.random() - 0.5);
+  const startWriting = (dueOnly = false) => {
+    const source = dueOnly ? writeDueChars : writableChars;
+    const shuffled = [...source].sort(() => Math.random() - 0.5);
     setWriteDeck(shuffled);
     setWriteIdx(0);
     setWriteComplete(false);
@@ -560,7 +700,12 @@ function App() {
 
   const nextWriteChar = () => {
     if (writeIdx + 1 >= writeDeck.length) {
-      setMode("menu");
+      if (mixedFromWrite) {
+        setMixedFromWrite(false);
+        advanceMixed();
+      } else {
+        setMode("menu");
+      }
     } else {
       setWriteIdx(i => i + 1);
       setWriteComplete(false);
@@ -586,6 +731,11 @@ function App() {
         setWriteComplete(true);
         setWriteStats(prev => ({ done: prev.done + 1 }));
         recordActivity(streak, setStreak);
+        setCharProgress(prev => {
+          const updated = { ...prev, [writeChar]: computeNextEntry(prev[writeChar], RATING.know) };
+          saveProgress(updated, CHAR_STORAGE_KEY);
+          return updated;
+        });
       },
     });
     return () => { writeWriterRef.current = null; };
@@ -622,6 +772,14 @@ function App() {
   const registerResult = (correct) => {
     setBuildStats(prev => ({ ...prev, correct: prev.correct + (correct ? 1 : 0), wrong: prev.wrong + (correct ? 0 : 1) }));
     recordActivity(streak, setStreak);
+    // Construir una frase correctamente también cuenta como repaso exitoso de esa
+    // tarjeta: alimenta el mismo sistema de cajas que usan Flashcards/Vocabulario,
+    // en vez de que el progreso de Construir se pierda al salir del modo.
+    setProgress(prev => {
+      const updated = { ...prev, [buildCard.id]: computeNextEntry(prev[buildCard.id], correct ? RATING.know : RATING.dontKnow) };
+      saveProgress(updated);
+      return updated;
+    });
     if (correct) speak(buildCard.zh);
   };
 
@@ -668,8 +826,10 @@ function App() {
   };
 
   const vocabCards = ALL_CARDS.filter(c => c.kind === "vocab" && selectedUnits.includes(c.unit));
-  const startVocab = () => {
-    const shuffled = [...vocabCards].sort(() => Math.random() - 0.5);
+  const vocabDueCards = vocabCards.filter(c => isDue(c.id, progress));
+  const startVocab = (dueOnly = false) => {
+    const source = dueOnly ? vocabDueCards : vocabCards;
+    const shuffled = [...source].sort(() => Math.random() - 0.5);
     setDeck(shuffled);
     setCurrentIdx(0);
     setFlipped(false);
@@ -679,9 +839,55 @@ function App() {
     setMode("study");
   };
 
+  const startMixed = () => {
+    const source = dueCards.length > 0 ? dueCards : ALL_CARDS.filter(c => selectedUnits.includes(c.unit));
+    const shuffled = [...source].sort(() => Math.random() - 0.5);
+    setMixedQueue(shuffled);
+    setMixedIdx(0);
+    setMixedFlipped(false);
+    setMode("mixed");
+  };
+
+  const advanceMixed = () => {
+    setMixedFlipped(false);
+    if (mixedIdx + 1 >= mixedQueue.length) {
+      setMode("menu");
+    } else {
+      setMixedIdx(i => i + 1);
+    }
+  };
+
+  // Califica la tarjeta actual de la sesión mixta y, si tiene un carácter
+  // practicable, encadena la práctica de escritura de ese carácter antes de
+  // avanzar a la siguiente tarjeta (reutiliza tal cual la pantalla "writing").
+  const rateMixed = (r) => {
+    const mc = mixedQueue[mixedIdx];
+    setProgress(prev => {
+      const updated = { ...prev, [mc.id]: computeNextEntry(prev[mc.id], r) };
+      saveProgress(updated);
+      return updated;
+    });
+    recordActivity(streak, setStreak);
+    window.speechSynthesis.cancel();
+    const chars = Array.from(mc.zh).filter(ch => STROKES_DATA && STROKES_DATA[ch]);
+    if (chars.length > 0) {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      setWriteDeck([ch]);
+      setWriteIdx(0);
+      setWriteComplete(false);
+      setMixedFromWrite(true);
+      setMode("writing");
+    } else {
+      advanceMixed();
+    }
+  };
+
+  const mixedCard = mixedQueue[mixedIdx];
+  const mixedColor = mixedCard ? (UNIT_COLORS[mixedCard.unit] || UNIT_COLORS[1]) : UNIT_COLORS[1];
+
   const card = deck[currentIdx];
   const color = card ? (UNIT_COLORS[card.unit] || UNIT_COLORS[1]) : UNIT_COLORS[1];
-  const isReference = card && card.unitName && card.unitName.includes("📐");
+  const isReference = isPatternCard(card);
 
   const rate = (r) => {
     setRatings(prev => ({ ...prev, [card.id]: r }));
@@ -711,6 +917,12 @@ function App() {
     if (flipped && autoPlay && card && isSpeakableZh(card.zh)) speak(card.zh);
   }, [flipped, card?.id]);
 
+  // Modo "solo audio": reproduce apenas aparece la tarjeta (antes de revelar),
+  // para que el reto sea reconocer de oído en vez de leer el carácter primero.
+  useEffect(() => {
+    if (studyDir === "listen" && !flipped && card && isSpeakableZh(card.zh)) speak(card.zh);
+  }, [studyDir, card?.id]);
+
   const toggleUnit = (u) => {
     setSelectedUnits(prev =>
       prev.includes(u) ? prev.filter(x => x !== u) : [...prev, u]
@@ -722,14 +934,12 @@ function App() {
   const almostCount = Object.values(ratings).filter(r => r === RATING.almost).length;
   const dontCount = Object.values(ratings).filter(r => r === RATING.dontKnow).length;
 
-  const front = studyDir === "es→zh" ? card?.es : card?.zh;
-  const frontSub = studyDir === "es→zh" ? null : card?.py;
   const back_zh = card?.zh;
   const back_py = card?.py;
   const back_es = card?.es;
 
   if (mode === "menu") return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00 0%, #3d1a00 50%, #1a0a00 100%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         {/* Header */}
         <div style={{ marginBottom: 18 }}>
@@ -828,11 +1038,19 @@ function App() {
         </button>
 
         <button onClick={() => setMode("patterns")} style={{
-          width: "100%", padding: "16px 0", borderRadius: 16, marginBottom: 18,
+          width: "100%", padding: "16px 0", borderRadius: 16, marginBottom: 10,
           border: "2px solid rgba(255,157,61,0.4)", background: "rgba(255,157,61,0.08)",
           color: "#FF9D3D", fontSize: 15, fontWeight: "bold", cursor: "pointer", fontFamily: "sans-serif"
         }}>
           📐 Patrones gramaticales · {PATTERN_CATEGORIES.reduce((sum, c) => sum + c.ids.length, 0)}
+        </button>
+
+        <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length === 0} style={{
+          width: "100%", padding: "14px 0", borderRadius: 16, marginBottom: 18, border: "2px solid rgba(123,31,162,0.4)",
+          background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
+          cursor: "pointer", fontFamily: "sans-serif"
+        }}>
+          🔀 Sesión mixta · repaso + escritura intercalados
         </button>
       </div>
       <TabBar activeMode={mode} setMode={setMode} />
@@ -841,7 +1059,7 @@ function App() {
 
   // Pantalla de opciones: dirección, audio, pinyin, selector de unidades, reiniciar progreso
   if (mode === "settings") return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00 0%, #3d1a00 50%, #1a0a00 100%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
       <div style={{ maxWidth: 500, width: "100%" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", fontFamily: "sans-serif" }}>⚙️ Opciones</span>
@@ -850,19 +1068,26 @@ function App() {
         {/* Direction */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
           <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>Dirección de estudio</p>
-          <div style={{ display: "flex", gap: 8 }}>
-            {["es→zh", "zh→es"].map(d => (
-              <button key={d} onClick={() => setStudyDir(d)} style={{
-                flex: 1, padding: "10px 0", borderRadius: 10, border: "2px solid",
-                borderColor: studyDir === d ? "#FF6B35" : "rgba(255,255,255,0.2)",
-                background: studyDir === d ? "rgba(255,107,53,0.2)" : "transparent",
-                color: studyDir === d ? "#FF9D3D" : "#aaa",
-                cursor: "pointer", fontFamily: "sans-serif", fontSize: 13, fontWeight: studyDir === d ? "bold" : "normal"
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { v: "es→zh", label: "🇲🇽 → 🇨🇳 Español a Chino" },
+              { v: "zh→es", label: "🇨🇳 → 🇲🇽 Chino a Español" },
+              { v: "listen", label: "🔊 Solo audio (producción)" },
+            ].map(d => (
+              <button key={d.v} onClick={() => setStudyDir(d.v)} style={{
+                flex: "1 1 30%", padding: "10px 4px", borderRadius: 10, border: "2px solid",
+                borderColor: studyDir === d.v ? "#FF6B35" : "rgba(255,255,255,0.2)",
+                background: studyDir === d.v ? "rgba(255,107,53,0.2)" : "transparent",
+                color: studyDir === d.v ? "#FF9D3D" : "#aaa",
+                cursor: "pointer", fontFamily: "sans-serif", fontSize: 12, fontWeight: studyDir === d.v ? "bold" : "normal"
               }}>
-                {d === "es→zh" ? "🇲🇽 → 🇨🇳 Español a Chino" : "🇨🇳 → 🇲🇽 Chino a Español"}
+                {d.label}
               </button>
             ))}
           </div>
+          <p style={{ color: "#888", fontSize: 11, margin: "8px 0 0 0", fontFamily: "sans-serif" }}>
+            "Solo audio" te reta a recordar el pinyin y el significado antes de revelar — sin ver el carácter primero.
+          </p>
         </div>
 
         {/* Toggles */}
@@ -883,6 +1108,24 @@ function App() {
             </div>
           </div>
         ))}
+        {/* Límite diario de repaso */}
+        <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
+          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 4px 0", fontFamily: "sans-serif" }}>Límite diario de repaso</p>
+          <p style={{ color: "#888", fontSize: 11, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>Evita repasos interminables en un solo día</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[0, 20, 40, 60].map(n => (
+              <button key={n} onClick={() => setDailyCap(n)} style={{
+                flex: 1, padding: "10px 0", borderRadius: 10, border: "2px solid",
+                borderColor: dailyCap === n ? "#FF6B35" : "rgba(255,255,255,0.2)",
+                background: dailyCap === n ? "rgba(255,107,53,0.2)" : "transparent",
+                color: dailyCap === n ? "#FF9D3D" : "#aaa",
+                cursor: "pointer", fontFamily: "sans-serif", fontSize: 13, fontWeight: dailyCap === n ? "bold" : "normal"
+              }}>
+                {n === 0 ? "Sin límite" : n}
+              </button>
+            ))}
+          </div>
+        </div>
         <div style={{ marginBottom: 6 }} />
 
         {/* Unit selector con % de dominio */}
@@ -898,7 +1141,7 @@ function App() {
           {/* Book 1 - Textbook units 1-10 */}
           <p style={{ color: "#FF9D3D", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>📙 LIBRO 1 — Unidades</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginBottom: 12 }}>
-            {units.filter(u => u >= 1 && u <= 10).map(u => {
+            {units.filter(u => bookInfo(u)?.book === 1).map(u => {
               const uc = UNIT_COLORS[u];
               const sel = selectedUnits.includes(u);
               const pct = unitMastery(u);
@@ -910,7 +1153,7 @@ function App() {
                   fontFamily: "sans-serif", fontWeight: sel ? "bold" : "normal",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2
                 }}>
-                  <span style={{ fontSize: 12 }}>U{u}</span>
+                  <span style={{ fontSize: 12 }}>U{bookInfo(u).num}</span>
                   <span style={{ fontSize: 9, opacity: 0.85 }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
                 </button>
               );
@@ -920,10 +1163,9 @@ function App() {
           {/* Book 2 */}
           <p style={{ color: "#00838F", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>📗 LIBRO 2</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginBottom: 12 }}>
-            {units.filter(u => u >= 13 && u <= 22).map(u => {
+            {units.filter(u => bookInfo(u)?.book === 2).map(u => {
               const uc = UNIT_COLORS[u];
               const sel = selectedUnits.includes(u);
-              const l2num = u - 12;
               const pct = unitMastery(u);
               return (
                 <button key={u} onClick={() => toggleUnit(u)} style={{
@@ -933,7 +1175,7 @@ function App() {
                   fontFamily: "sans-serif", fontWeight: sel ? "bold" : "normal",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2
                 }}>
-                  <span style={{ fontSize: 12 }}>U{l2num}</span>
+                  <span style={{ fontSize: 12 }}>U{bookInfo(u).num}</span>
                   <span style={{ fontSize: 9, opacity: 0.85 }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
                 </button>
               );
@@ -943,10 +1185,9 @@ function App() {
           {/* Book 3 */}
           <p style={{ color: "#0277BD", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>📘 LIBRO 3</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
-            {units.filter(u => u >= 23 && u !== 30).map(u => {
+            {units.filter(u => bookInfo(u)?.book === 3).map(u => {
               const uc = UNIT_COLORS[u];
               const sel = selectedUnits.includes(u);
-              const l3num = u - 22;
               const pct = unitMastery(u);
               return (
                 <button key={u} onClick={() => toggleUnit(u)} style={{
@@ -956,7 +1197,7 @@ function App() {
                   fontFamily: "sans-serif", fontWeight: sel ? "bold" : "normal",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2
                 }}>
-                  <span style={{ fontSize: 12 }}>U{l3num}</span>
+                  <span style={{ fontSize: 12 }}>U{bookInfo(u).num}</span>
                   <span style={{ fontSize: 9, opacity: 0.85 }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
                 </button>
               );
@@ -977,56 +1218,41 @@ function App() {
   );
 
   if (mode === "results") return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
-      <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
-        <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
-        <h2 style={{ color: "#FF9D3D", fontSize: 24, marginBottom: 4 }}>¡Ronda completada!</h2>
-        <p style={{ color: "#FFD09B", marginBottom: 32, fontSize: 14 }}>{deck.length} tarjetas estudiadas</p>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 32 }}>
-          {[
-            { label: "✅ Las sé", count: knowCount, color: "#4CAF50" },
-            { label: "🤔 Casi", count: almostCount, color: "#FF9D3D" },
-            { label: "❌ Repasar", count: dontCount, color: "#F44336" },
-          ].map(s => (
-            <div key={s.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 8px" }}>
-              <div style={{ fontSize: 28, fontWeight: "bold", color: s.color }}>{s.count}</div>
-              <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {dueCount > 0 && (
-            <button onClick={startReviewToday} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #FF6B35, #FF9D3D)", color: "white", fontSize: 15, fontWeight: "bold", cursor: "pointer" }}>
-              📅 Seguir con el repaso de hoy ({dueCount} pendientes)
-            </button>
-          )}
-          <button onClick={() => {
+    <ResultsScreen
+      emoji="🎉" title="¡Ronda completada!" titleColor="#FF9D3D"
+      subtitle={`${deck.length} tarjetas estudiadas`}
+      stats={[
+        { label: "✅ Las sé", count: knowCount, color: "#4CAF50" },
+        { label: "🤔 Casi", count: almostCount, color: "#FF9D3D" },
+        { label: "❌ Repasar", count: dontCount, color: "#F44336" },
+      ]}
+      actions={[
+        dueCount > 0 && {
+          label: `📅 Seguir con el repaso de hoy (${dueCount} pendientes)`, onClick: startReviewToday,
+          background: "linear-gradient(135deg, #FF6B35, #FF9D3D)", color: "white", fontSize: 15, bold: true,
+        },
+        {
+          label: "🔄 Repasar las que me fallaron",
+          onClick: () => {
             const dontKnow = deck.filter(c => ratings[c.id] === RATING.dontKnow || ratings[c.id] === RATING.almost);
             if (dontKnow.length === 0) { startStudy(); return; }
             setDeck(dontKnow.sort(() => Math.random() - 0.5));
             setCurrentIdx(0); setFlipped(false); setRatings({}); setMode("study");
-          }} style={{ padding: "14px 0", borderRadius: 14, border: dueCount > 0 ? "2px solid rgba(255,107,53,0.4)" : "none", background: dueCount > 0 ? "transparent" : "linear-gradient(135deg, #FF6B35, #FF9D3D)", color: dueCount > 0 ? "#FF9D3D" : "white", fontSize: 15, fontWeight: "bold", cursor: "pointer" }}>
-            🔄 Repasar las que me fallaron
-          </button>
-          <button onClick={startBuild} disabled={buildableCards.length === 0} style={{ padding: "14px 0", borderRadius: 14, border: "2px solid rgba(0,131,143,0.4)", background: "transparent", color: buildableCards.length === 0 ? "#555" : "#4DD0E1", fontSize: 14, cursor: buildableCards.length === 0 ? "not-allowed" : "pointer" }}>
-            ✏️ Construir frases con estas unidades
-          </button>
-          <button onClick={lastDeckKind === "vocab" ? startVocab : startStudy} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#999", fontSize: 13, cursor: "pointer" }}>
-            🔀 Nueva ronda completa
-          </button>
-          <button onClick={() => setMode("menu")} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#888", fontSize: 14, cursor: "pointer" }}>
-            ← Menú principal
-          </button>
-        </div>
-      </div>
-    </div>
+          },
+          border: dueCount > 0 ? "2px solid rgba(255,107,53,0.4)" : "none",
+          background: dueCount > 0 ? "transparent" : "linear-gradient(135deg, #FF6B35, #FF9D3D)",
+          color: dueCount > 0 ? "#FF9D3D" : "white", fontSize: 15, bold: true,
+        },
+        { label: "✏️ Construir frases con estas unidades", onClick: startBuild, disabled: buildableCards.length === 0, border: "2px solid rgba(0,131,143,0.4)", color: "#4DD0E1", fontSize: 14 },
+        { label: "🔀 Nueva ronda completa", onClick: () => (lastDeckKind === "vocab" ? startVocab() : startStudy()), color: "#999", fontSize: 13 },
+        { label: "← Menú principal", onClick: () => setMode("menu"), color: "#888", fontSize: 14 },
+      ]}
+    />
   );
 
   // Modo: lista de categorías de patrones
   if (mode === "patterns") return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold" }}>📐 Patrones gramaticales</span>
@@ -1065,7 +1291,7 @@ function App() {
     const cat = selectedCategory;
     const cards = ALL_CARDS.filter(c => cat.ids.includes(c.id));
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <button onClick={() => setMode("patterns")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Categorías</button>
@@ -1083,12 +1309,7 @@ function App() {
                   <p style={{ color: "white", fontSize: 17, fontWeight: "bold", margin: "0 0 2px 0" }}>{c.zh}</p>
                   {showPinyin && <p style={{ fontSize: 12, fontStyle: "italic", margin: "0 0 6px 0", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(c.py, true)}</p>}
                 </div>
-                {isSpeakableZh(c.zh) && (
-                  <button onClick={() => speak(c.zh.replace(/[❌✅]/g, ""))} style={{
-                    background: "none", border: `1px solid ${cat.color}66`, borderRadius: 20,
-                    padding: "3px 8px", color: cat.color, fontSize: 12, cursor: "pointer", flexShrink: 0
-                  }}>🔊</button>
-                )}
+                <SpeakButton text={c.zh.replace(/[❌✅]/g, "")} speak={speak} speaking={speaking} color={cat.color} />
               </div>
               <p style={{ color: "#ccc", fontSize: 13, margin: "0 0 8px 0", lineHeight: 1.4 }}>{c.es}</p>
               <div style={{ background: `${cat.color}12`, borderRadius: 10, padding: "8px 12px" }}>
@@ -1112,7 +1333,7 @@ function App() {
   }
 
   if (mode === "buildResults") return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 52, marginBottom: 16 }}>✏️</div>
         <h2 style={{ color: "#4DD0E1", fontSize: 24, marginBottom: 4 }}>¡Ronda de frases completada!</h2>
@@ -1151,121 +1372,118 @@ function App() {
 
   // Tab: Construir — elegir nivel y empezar
   if (mode === "buildHub") return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
-      <div style={{ maxWidth: 480, width: "100%" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <span style={{ color: "#4DD0E1", fontSize: 15, fontWeight: "bold" }}>✏️ Construir frases</span>
+    <HubScreen title="✏️ Construir frases" titleColor="#4DD0E1" mode={mode} setMode={setMode}
+      description="Arma la frase en chino con las fichas, o escríbela de memoria en 听写. Elige el nivel:">
+      <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 12, marginBottom: 14 }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+          {[
+            { v: "easy", label: "🟢 Fácil" },
+            { v: "medium", label: "🟡 Medio" },
+            { v: "hard", label: "🔴 听写" },
+          ].map(lv => (
+            <button key={lv.v} onClick={() => setBuilderLevel(lv.v)} style={{
+              flex: 1, padding: "7px 0", borderRadius: 10, border: `2px solid ${builderLevel === lv.v ? "#4DD0E1" : "rgba(255,255,255,0.15)"}`,
+              background: builderLevel === lv.v ? "rgba(77,208,225,0.15)" : "transparent",
+              color: builderLevel === lv.v ? "#4DD0E1" : "#888", fontSize: 11, fontWeight: builderLevel === lv.v ? "bold" : "normal",
+              cursor: "pointer", fontFamily: "sans-serif"
+            }}>
+              {lv.label}
+            </button>
+          ))}
         </div>
-        <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
-          Arma la frase en chino con las fichas, o escríbela de memoria en 听写. Elige el nivel:
-        </p>
-
-        <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 12, marginBottom: 14 }}>
-          <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-            {[
-              { v: "easy", label: "🟢 Fácil" },
-              { v: "medium", label: "🟡 Medio" },
-              { v: "hard", label: "🔴 听写" },
-            ].map(lv => (
-              <button key={lv.v} onClick={() => setBuilderLevel(lv.v)} style={{
-                flex: 1, padding: "7px 0", borderRadius: 10, border: `2px solid ${builderLevel === lv.v ? "#4DD0E1" : "rgba(255,255,255,0.15)"}`,
-                background: builderLevel === lv.v ? "rgba(77,208,225,0.15)" : "transparent",
-                color: builderLevel === lv.v ? "#4DD0E1" : "#888", fontSize: 11, fontWeight: builderLevel === lv.v ? "bold" : "normal",
-                cursor: "pointer", fontFamily: "sans-serif"
-              }}>
-                {lv.label}
-              </button>
-            ))}
-          </div>
-          <button onClick={startBuild} disabled={buildableCards.length === 0} style={{
-            width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-            background: buildableCards.length === 0 ? "#444" : "linear-gradient(135deg, #00838F, #4DD0E1)",
-            color: "white", fontSize: 15, fontWeight: "bold",
-            cursor: buildableCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
-          }}>
-            ✏️ Comenzar · {buildableCards.length} disponibles
-          </button>
-        </div>
+        <button onClick={startBuild} disabled={buildableCards.length === 0} style={{
+          width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
+          background: buildableCards.length === 0 ? "#444" : "linear-gradient(135deg, #00838F, #4DD0E1)",
+          color: "white", fontSize: 15, fontWeight: "bold",
+          cursor: buildableCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
+        }}>
+          ✏️ Comenzar · {buildableCards.length} disponibles
+        </button>
       </div>
-      <TabBar activeMode={mode} setMode={setMode} />
-    </div>
+    </HubScreen>
   );
 
   // Tab: Escritura — practicar el orden de trazos de los caracteres
   if (mode === "writingHub") return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
-      <div style={{ maxWidth: 480, width: "100%" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <span style={{ color: "#C6501F", fontSize: 15, fontWeight: "bold" }}>🖌️ Escritura</span>
-        </div>
-        <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 12, lineHeight: 1.5 }}>
-          Practica el orden de trazos de los caracteres de tus unidades seleccionadas, uno por uno.
-        </p>
+    <HubScreen title="🖌️ Escritura" titleColor="#C6501F" mode={mode} setMode={setMode}>
+      <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 12, lineHeight: 1.5 }}>
+        Practica el orden de trazos de los caracteres de tus unidades seleccionadas, uno por uno.
+      </p>
 
-        <button onClick={() => setMode("settings")} style={{
-          display: "block", margin: "0 auto 20px", background: "none", border: "none",
-          color: "#C6501F", fontSize: 12, cursor: "pointer", textDecoration: "underline"
+      <button onClick={() => setMode("settings")} style={{
+        display: "block", margin: "0 auto 20px", background: "none", border: "none",
+        color: "#C6501F", fontSize: 12, cursor: "pointer", textDecoration: "underline"
+      }}>
+        {selectedUnits.length} unidades seleccionadas · cambiar en Opciones
+      </button>
+
+      {writeDueChars.length > 0 && (
+        <button onClick={() => startWriting(true)} style={{
+          width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
+          background: "linear-gradient(135deg, #C6501F, #FF9D3D)", color: "white", cursor: "pointer", fontFamily: "sans-serif"
         }}>
-          {selectedUnits.length} unidades seleccionadas · cambiar en Opciones
+          <span style={{ fontSize: 13, fontWeight: "bold" }}>📅 Repasar pendientes de hoy</span>
+          <span style={{ fontSize: 13, fontWeight: "bold" }}>{writeDueChars.length} →</span>
         </button>
+      )}
 
-        <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 16, marginBottom: 14, textAlign: "center" }}>
-          <div style={{ fontSize: 34, marginBottom: 8 }}>{writableChars.slice(0, 6).join(" ")}</div>
-          <button onClick={startWriting} disabled={writableChars.length === 0} style={{
-            width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-            background: writableChars.length === 0 ? "#444" : "linear-gradient(135deg, #C6501F, #FF9D3D)",
-            color: "white", fontSize: 15, fontWeight: "bold",
-            cursor: writableChars.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
-          }}>
-            🖌️ Comenzar · {writableChars.length} caracteres
-          </button>
-        </div>
-        {writableChars.length === 0 && (
-          <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
-            Selecciona unidades en Opciones para practicar sus caracteres.
-          </p>
-        )}
+      <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 16, marginBottom: 14, textAlign: "center" }}>
+        <div style={{ fontSize: 34, marginBottom: 8 }}>{writableChars.slice(0, 6).join(" ")}</div>
+        <button onClick={() => startWriting(false)} disabled={writableChars.length === 0} style={{
+          width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
+          background: writableChars.length === 0 ? "#444" : "linear-gradient(135deg, #C6501F, #FF9D3D)",
+          color: "white", fontSize: 15, fontWeight: "bold",
+          cursor: writableChars.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
+        }}>
+          🖌️ Comenzar · {writableChars.length} caracteres
+        </button>
       </div>
-      <TabBar activeMode={mode} setMode={setMode} />
-    </div>
+      {writableChars.length === 0 && (
+        <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
+          Selecciona unidades en Opciones para practicar sus caracteres.
+        </p>
+      )}
+    </HubScreen>
   );
 
   // Tab: Vocabulario — solo los términos, con su ejemplo como contexto
   if (mode === "vocabHub") return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
-      <div style={{ maxWidth: 480, width: "100%" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <span style={{ color: "#00ACC1", fontSize: 15, fontWeight: "bold" }}>🔤 Vocabulario</span>
-        </div>
-        <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
-          Estudia solo los términos de tus unidades seleccionadas — carácter, pinyin y significado, con una frase de ejemplo.
-        </p>
-
-        <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 16, marginBottom: 14, textAlign: "center" }}>
-          <button onClick={startVocab} disabled={vocabCards.length === 0} style={{
-            width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-            background: vocabCards.length === 0 ? "#444" : "linear-gradient(135deg, #00ACC1, #4DD0E1)",
-            color: "white", fontSize: 15, fontWeight: "bold",
-            cursor: vocabCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
-          }}>
-            🔤 Comenzar · {vocabCards.length} términos
-          </button>
-        </div>
-        {vocabCards.length === 0 && (
-          <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
-            Todavía no hay vocabulario propio para las unidades seleccionadas. Prueba con unidades 13 a 25 en Opciones.
-          </p>
-        )}
+    <HubScreen title="🔤 Vocabulario" titleColor="#00ACC1" mode={mode} setMode={setMode}
+      description="Estudia solo los términos de tus unidades seleccionadas — carácter, pinyin y significado, con una frase de ejemplo.">
+      {vocabDueCards.length > 0 && (
+        <button onClick={() => startVocab(true)} style={{
+          width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
+          background: "linear-gradient(135deg, #00ACC1, #4DD0E1)", color: "white", cursor: "pointer", fontFamily: "sans-serif"
+        }}>
+          <span style={{ fontSize: 13, fontWeight: "bold" }}>📅 Repasar pendientes de hoy</span>
+          <span style={{ fontSize: 13, fontWeight: "bold" }}>{vocabDueCards.length} →</span>
+        </button>
+      )}
+      <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 16, marginBottom: 14, textAlign: "center" }}>
+        <button onClick={() => startVocab(false)} disabled={vocabCards.length === 0} style={{
+          width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
+          background: vocabCards.length === 0 ? "#444" : "linear-gradient(135deg, #00ACC1, #4DD0E1)",
+          color: "white", fontSize: 15, fontWeight: "bold",
+          cursor: vocabCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
+        }}>
+          🔤 Comenzar · {vocabCards.length} términos
+        </button>
       </div>
-      <TabBar activeMode={mode} setMode={setMode} />
-    </div>
+      {vocabCards.length === 0 && (
+        <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
+          Todavía no hay vocabulario propio para las unidades seleccionadas. Prueba con unidades 13 a 25 en Opciones.
+        </p>
+      )}
+    </HubScreen>
   );
 
   // Modo: Escritura de trazos (sesión activa)
   if (mode === "writing") {
     if (!writeChar) return null;
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
@@ -1299,18 +1517,23 @@ function App() {
             )}
 
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-              <button onClick={() => speak(writeChar)} style={{
-                padding: "10px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
-                background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
-              }}>
-                🔊
-              </button>
+              <SpeakButton text={writeChar} speak={speak} speaking={speaking}
+                style={{ padding: "10px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", fontSize: 13 }} />
               <button onClick={() => {
                 if (writeWriterRef.current) {
                   setWriteComplete(false);
                   writeWriterRef.current.quiz({
                     showHintAfterMisses: 2,
-                    onComplete: () => { setWriteComplete(true); setWriteStats(prev => ({ done: prev.done + 1 })); recordActivity(streak, setStreak); },
+                    onComplete: () => {
+                      setWriteComplete(true);
+                      setWriteStats(prev => ({ done: prev.done + 1 }));
+                      recordActivity(streak, setStreak);
+                      setCharProgress(prev => {
+                        const updated = { ...prev, [writeChar]: computeNextEntry(prev[writeChar], RATING.know) };
+                        saveProgress(updated, CHAR_STORAGE_KEY);
+                        return updated;
+                      });
+                    },
                   });
                 }
               }} style={{
@@ -1349,6 +1572,78 @@ function App() {
     );
   }
 
+  // Modo: Sesión mixta (intercalada) — flashcard + escritura, tarjeta por tarjeta
+  if (mode === "mixed") {
+    if (!mixedCard) return null;
+    return (
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+        <div style={{ maxWidth: 480, width: "100%" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
+            <span style={{ color: "#FFD09B", fontSize: 13 }}>{mixedIdx + 1} / {mixedQueue.length}</span>
+            <span style={{ color: mixedColor.accent, fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
+              🔀 Sesión mixta
+            </span>
+          </div>
+
+          <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 4, height: 5, marginBottom: 20, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${(mixedIdx / mixedQueue.length) * 100}%`, background: "linear-gradient(90deg, #7B1FA2, #BA68C8)", borderRadius: 4, transition: "width 0.4s" }} />
+          </div>
+
+          <div onClick={() => !mixedFlipped && setMixedFlipped(true)} style={{
+            background: mixedFlipped ? mixedColor.bg : "rgba(255,255,255,0.05)",
+            borderRadius: 24, padding: "32px 24px", minHeight: 260,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            cursor: mixedFlipped ? "default" : "pointer",
+            borderTop: `2px solid ${mixedFlipped ? mixedColor.accent : "rgba(255,255,255,0.1)"}`,
+            borderRight: `2px solid ${mixedFlipped ? mixedColor.accent : "rgba(255,255,255,0.1)"}`,
+            borderBottom: `2px solid ${mixedFlipped ? mixedColor.accent : "rgba(255,255,255,0.1)"}`,
+            borderLeft: `6px solid ${mixedColor.accent}`,
+            transition: "all 0.35s ease",
+          }}>
+            {!mixedFlipped ? (
+              <>
+                <div style={{ fontSize: 22, color: "white", textAlign: "center", lineHeight: 1.4 }}>{mixedCard.es}</div>
+                <div style={{ marginTop: 16, color: "#555", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>👆</span> Toca para revelar
+                </div>
+              </>
+            ) : (
+              <>
+                {mixedCard.emoji && <div style={{ fontSize: 34, marginBottom: 4 }}>{mixedCard.emoji}</div>}
+                <div style={{ fontSize: 38, fontWeight: "bold", color: mixedColor.accent, marginBottom: 4, textAlign: "center" }}>{mixedCard.zh}</div>
+                {showPinyin && <div style={{ fontSize: 15, marginBottom: 6, color: TONE_COLORS_LIGHT[0] }}>{renderPinyinTone(mixedCard.py, false)}</div>}
+                <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{mixedCard.es}</div>
+                <SpeakButton text={mixedCard.zh} speak={speak} speaking={speaking} color={mixedColor.accent} variant="label" label="Escuchar de nuevo" />
+              </>
+            )}
+          </div>
+
+          {mixedFlipped && (
+            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+              {[
+                { label: "❌ No la sé", value: RATING.dontKnow, color: "#F44336", bg: "rgba(244,67,54,0.15)" },
+                { label: "🤔 Casi", value: RATING.almost, color: "#FF9D3D", bg: "rgba(255,157,61,0.15)" },
+                { label: "✅ La sé", value: RATING.know, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
+              ].map(btn => (
+                <button key={btn.value} onClick={() => rateMixed(btn.value)} style={{
+                  flex: 1, padding: "14px 4px", borderRadius: 14, border: `2px solid ${btn.color}66`,
+                  background: btn.bg, color: btn.color, fontSize: 12, fontWeight: "bold", cursor: "pointer"
+                }}>
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <p style={{ textAlign: "center", color: "#666", fontSize: 11, marginTop: 20 }}>
+            Al calificar, si esta tarjeta tiene un carácter practicable pasarás a escribirlo antes de seguir
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Modo: Construir frases
   if (mode === "build") {
     if (!buildCard) return null;
@@ -1360,7 +1655,7 @@ function App() {
     const wasWrong = isHard ? hardResult === "wrong" : buildResult === "wrong";
 
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
 
           {/* Top bar */}
@@ -1502,12 +1797,8 @@ function App() {
                 ← Anterior
               </button>
             )}
-            <button onClick={() => speak(buildCard.zh)} style={{
-              padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
-              background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
-            }}>
-              🔊
-            </button>
+            <SpeakButton text={buildCard.zh} speak={speak} speaking={speaking}
+              style={{ padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", fontSize: 13 }} />
             {!showBuildAnswer && !resolved ? (
               <button onClick={() => setShowBuildAnswer(true)} style={{
                 flex: 1, padding: "12px 0", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
@@ -1531,7 +1822,7 @@ function App() {
 
   // Study mode
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
 
         {/* Top bar */}
@@ -1539,7 +1830,7 @@ function App() {
           <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
           <span style={{ color: "#FFD09B", fontSize: 13 }}>{currentIdx + 1} / {deck.length}</span>
           <span style={{ color: color.accent, fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
-            {card.unit <= 10 || card.unit === 30 ? card.unitName : `L2 · U${card.unit - 12}`}
+            {card.unit <= 10 || card.unit === 30 ? card.unitName : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : card.unitName; })()}
           </span>
         </div>
 
@@ -1575,22 +1866,23 @@ function App() {
               {studyDir === "zh→es" && (
                 <>
                   <div style={{ fontSize: 42, fontWeight: "bold", color: "white", marginBottom: 12, textAlign: "center" }}>{card.zh}</div>
-                  {isSpeakableZh(card.zh) && (
-                    <button onClick={(e) => { e.stopPropagation(); speak(card.zh); }} style={{
-                      background: speaking ? "rgba(255,107,53,0.3)" : "rgba(255,255,255,0.1)",
-                      border: `1px solid ${speaking ? "#FF6B35" : "rgba(255,255,255,0.2)"}`,
-                      borderRadius: 30, padding: "8px 18px", color: speaking ? "#FF9D3D" : "#aaa",
-                      fontSize: 15, cursor: "pointer", marginBottom: 12,
-                      transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6
-                    }}>
-                      {speaking ? "🔊 Reproduciendo..." : "🔊 Escuchar"}
-                    </button>
-                  )}
+                  <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" />
                   <FrontPinyinReveal pinyin={card.py} cardId={card.id} showPinyin={showPinyin} />
                 </>
               )}
               {studyDir === "es→zh" && (
                 <div style={{ fontSize: 22, color: "white", textAlign: "center", lineHeight: 1.4 }}>{card.es}</div>
+              )}
+              {studyDir === "listen" && (
+                isSpeakableZh(card.zh) ? (
+                  <>
+                    <div style={{ fontSize: 52, marginBottom: 10 }}>🔊</div>
+                    <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" label="Escuchar de nuevo" />
+                    <p style={{ color: "#888", fontSize: 12, textAlign: "center", margin: 0 }}>Recuerda el pinyin y el significado antes de revelar</p>
+                  </>
+                ) : (
+                  <p style={{ color: "#888", fontSize: 13, textAlign: "center", margin: 0 }}>Esta tarjeta no tiene audio disponible</p>
+                )
               )}
               <div style={{ marginTop: 16, color: "#555", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
                 <span>👆</span> {isReference ? "Toca para ver la explicación" : "Toca para revelar"}
@@ -1604,17 +1896,7 @@ function App() {
               <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{back_es}</div>
 
               {/* Speaker button on back */}
-              {isSpeakableZh(card.zh) && (
-                <button onClick={(e) => { e.stopPropagation(); speak(card.zh); }} style={{
-                  background: speaking ? `${color.accent}33` : `${color.accent}15`,
-                  border: `1px solid ${color.accent}66`,
-                  borderRadius: 30, padding: "7px 18px", color: color.accent,
-                  fontSize: 14, cursor: "pointer", marginBottom: 10,
-                  transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6
-                }}>
-                  {speaking ? "🔊 Reproduciendo..." : "🔊 Escuchar de nuevo"}
-                </button>
-              )}
+              <SpeakButton text={card.zh} speak={speak} speaking={speaking} color={color.accent} variant="label" label="Escuchar de nuevo" />
 
               <button onClick={(e) => { e.stopPropagation(); setShowExample(s => !s); }} style={{
                 background: "none", border: `1px solid ${color.accent}44`, borderRadius: 20, padding: "6px 14px",

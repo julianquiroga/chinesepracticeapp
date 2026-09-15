@@ -1,0 +1,11 @@
+{
+  "name": "长城汉语 · Flashcards",
+  "short_name": "长城汉语",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a0a00",
+  "theme_color": "#1a0a00",
+  "lang": "es",
+  "icons": []
+}
