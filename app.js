@@ -1197,9 +1197,16 @@ function App() {
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <span style={{ color: "#C6501F", fontSize: 15, fontWeight: "bold" }}>🖌️ Escritura</span>
         </div>
-        <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
+        <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 12, lineHeight: 1.5 }}>
           Practica el orden de trazos de los caracteres de tus unidades seleccionadas, uno por uno.
         </p>
+
+        <button onClick={() => setMode("settings")} style={{
+          display: "block", margin: "0 auto 20px", background: "none", border: "none",
+          color: "#C6501F", fontSize: 12, cursor: "pointer", textDecoration: "underline"
+        }}>
+          {selectedUnits.length} unidades seleccionadas · cambiar en Opciones
+        </button>
 
         <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 16, marginBottom: 14, textAlign: "center" }}>
           <div style={{ fontSize: 34, marginBottom: 8 }}>{writableChars.slice(0, 6).join(" ")}</div>
@@ -1279,6 +1286,12 @@ function App() {
             }}>
               <div ref={writeTargetRef} />
             </div>
+
+            {showPinyin && CHAR_PINYIN[writeChar] && (
+              <p style={{ color: "#FFD09B", fontSize: 18, fontStyle: "italic", marginBottom: 10, marginTop: -4 }}>
+                {CHAR_PINYIN[writeChar]}
+              </p>
+            )}
 
             {writeComplete && (
               <p style={{ color: "#4CAF50", fontSize: 15, fontWeight: "bold", marginBottom: 12 }}>✅ ¡Completo!</p>
