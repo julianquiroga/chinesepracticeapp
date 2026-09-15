@@ -542,6 +542,7 @@ function App() {
   const [writeIdx, setWriteIdx] = useState(0);
   const [writeComplete, setWriteComplete] = useState(false);
   const [writeStats, setWriteStats] = useState({ done: 0 });
+  const [writeShowPinyin, setWriteShowPinyin] = useState(false);
   const writeTargetRef = useRef(null);
   const writeWriterRef = useRef(null);
 
@@ -1287,7 +1288,7 @@ function App() {
               <div ref={writeTargetRef} />
             </div>
 
-            {showPinyin && CHAR_PINYIN[writeChar] && (
+            {writeShowPinyin && CHAR_PINYIN[writeChar] && (
               <p style={{ color: "#FFD09B", fontSize: 18, fontStyle: "italic", marginBottom: 10, marginTop: -4 }}>
                 {CHAR_PINYIN[writeChar]}
               </p>
@@ -1325,6 +1326,13 @@ function App() {
                 background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
               }}>
                 💡 Pista
+              </button>
+              <button onClick={() => setWriteShowPinyin(s => !s)} style={{
+                padding: "10px 16px", borderRadius: 14, border: `1px solid ${writeShowPinyin ? "rgba(255,157,61,0.5)" : "rgba(255,255,255,0.2)"}`,
+                background: writeShowPinyin ? "rgba(255,157,61,0.15)" : "rgba(255,255,255,0.06)",
+                color: writeShowPinyin ? "#FF9D3D" : "#aaa", fontSize: 13, cursor: "pointer"
+              }}>
+                拼 Pinyin
               </button>
             </div>
 
