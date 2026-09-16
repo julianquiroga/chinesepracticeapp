@@ -606,7 +606,17 @@ function App() {
     return Math.round((mastered / cards.length) * 100);
   };
   const unitMastery = (unitNum) => masteryFor(ALL_CARDS.filter(c => c.unit === unitNum));
-  const categoryMastery = (cat) => masteryFor(ALL_CARDS.filter(c => cat.ids.includes(c.id)));
+  // Tarjetas de una categoría de Patrones, respetando las unidades seleccionadas
+  // en Opciones (igual que Flashcards/Construir/Vocabulario/Escritura) y
+  // ordenadas por unidad para reflejar el orden en que se van viendo en el curso.
+  // La unidad 30 es un cajón genérico de referencia cruzada (no aparece como
+  // opción individual en Opciones — solo entra con "Todas"), así que sus
+  // tarjetas se muestran siempre; el filtro solo aplica a las que sí tienen
+  // una unidad real de origen.
+  const categoryCards = (cat) => ALL_CARDS
+    .filter(c => cat.ids.includes(c.id) && (c.unit === 30 || selectedUnits.includes(c.unit)))
+    .sort((a, b) => a.unit - b.unit);
+  const categoryMastery = (cat) => masteryFor(categoryCards(cat));
 
   const resetProgress = () => {
     if (window.confirm("¿Seguro que quieres borrar todo tu progreso guardado? Esto no se puede deshacer.")) {
@@ -624,8 +634,7 @@ function App() {
   };
 
   const practiceCategory = (cat) => {
-    const cards = ALL_CARDS.filter(c => cat.ids.includes(c.id));
-    const shuffled = [...cards].sort(() => Math.random() - 0.5);
+    const shuffled = [...categoryCards(cat)].sort(() => Math.random() - 0.5);
     setDeck(shuffled);
     setCurrentIdx(0);
     setFlipped(false);
@@ -1081,7 +1090,7 @@ function App() {
           border: "2px solid rgba(255,157,61,0.4)", background: "rgba(255,157,61,0.08)",
           color: "#FF9D3D", fontSize: 15, fontWeight: "bold", cursor: "pointer", fontFamily: "sans-serif"
         }}>
-          📐 Patrones gramaticales · {PATTERN_CATEGORIES.reduce((sum, c) => sum + c.ids.length, 0)}
+          📐 Patrones gramaticales · {PATTERN_CATEGORIES.reduce((sum, c) => sum + categoryCards(c).length, 0)}
         </button>
 
         <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length === 0} style={{
@@ -1297,10 +1306,11 @@ function App() {
           <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold" }}>📐 Patrones gramaticales</span>
         </div>
         <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
-          Las estructuras se repiten en muchas unidades. Aquí están agrupadas por tipo, sin importar en qué semana las viste.
+          Las estructuras se repiten en varias unidades — están agrupadas por tipo y ordenadas por la unidad donde aparecen, dentro de tus unidades seleccionadas.
         </p>
 
         {PATTERN_CATEGORIES.map(cat => {
+          const count = categoryCards(cat).length;
           const pct = categoryMastery(cat);
           return (
             <button key={cat.key} onClick={() => openCategory(cat)} style={{
@@ -1314,7 +1324,7 @@ function App() {
                 <span style={{ color: "white", fontSize: 15, fontWeight: "bold" }}>{cat.label}</span>
               </span>
               <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                <span style={{ color: cat.color, fontSize: 13, fontWeight: "bold" }}>{cat.ids.length} →</span>
+                <span style={{ color: count > 0 ? cat.color : "#666", fontSize: 13, fontWeight: "bold" }}>{count} →</span>
                 <span style={{ color: pct > 0 ? "#4CAF50" : "#888", fontSize: 10, fontFamily: "sans-serif" }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
               </span>
             </button>
@@ -1328,7 +1338,7 @@ function App() {
   // Modo: detalle de una categoría — referencia + practicar
   if (mode === "patternDetail" && selectedCategory) {
     const cat = selectedCategory;
-    const cards = ALL_CARDS.filter(c => cat.ids.includes(c.id));
+    const cards = categoryCards(cat);
     return (
       <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
@@ -1338,6 +1348,12 @@ function App() {
           </div>
           <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 20px 0" }}>{cat.icon} {cat.label}</h2>
 
+          {cards.length === 0 && (
+            <p style={{ color: "#888", fontSize: 13, textAlign: "center", lineHeight: 1.5, margin: "0 0 20px 0" }}>
+              Todavía no has seleccionado ninguna unidad con este patrón — elegí más unidades en Opciones para verlo aquí.
+            </p>
+          )}
+
           {cards.map(c => (
             <div key={c.id} style={{
               background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: "14px 16px", marginBottom: 10,
@@ -1345,6 +1361,9 @@ function App() {
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                 <div>
+                  <span style={{ display: "inline-block", color: cat.color, fontSize: 10, fontWeight: "bold", background: `${cat.color}18`, borderRadius: 20, padding: "2px 8px", marginBottom: 6 }}>
+                    {c.unitName}
+                  </span>
                   <p style={{ color: "white", fontSize: 17, fontWeight: "bold", margin: "0 0 2px 0" }}>{c.zh}</p>
                   {showPinyin && <p style={{ fontSize: 12, fontStyle: "italic", margin: "0 0 6px 0", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(c.py, true)}</p>}
                 </div>
@@ -1359,10 +1378,10 @@ function App() {
             </div>
           ))}
 
-          <button onClick={() => practiceCategory(cat)} style={{
+          <button onClick={() => practiceCategory(cat)} disabled={cards.length === 0} style={{
             width: "100%", padding: "16px 0", borderRadius: 16, border: "none", marginTop: 12,
-            background: `linear-gradient(135deg, ${cat.color}, ${cat.color}cc)`, color: "white",
-            fontSize: 15, fontWeight: "bold", cursor: "pointer"
+            background: cards.length === 0 ? "#444" : `linear-gradient(135deg, ${cat.color}, ${cat.color}cc)`, color: "white",
+            fontSize: 15, fontWeight: "bold", cursor: cards.length === 0 ? "not-allowed" : "pointer"
           }}>
             🎯 Practicar estos patrones
           </button>
