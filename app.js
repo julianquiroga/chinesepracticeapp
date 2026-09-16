@@ -1711,6 +1711,7 @@ function App() {
     const resolved = isHard ? hardResult !== null : buildResult !== null;
     const wasCorrect = isHard ? hardResult === "correct" : buildResult === "correct";
     const wasWrong = isHard ? hardResult === "wrong" : buildResult === "wrong";
+    const targetChars = Array.from(buildCard.zh);
 
     return (
       <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
@@ -1786,16 +1787,23 @@ function App() {
                 transition: "border-color 0.3s"
               }}>
                 {answer.length === 0 && <span style={{ color: "#555", fontSize: 13 }}>Toca las fichas de abajo en orden</span>}
-                {answer.map(tile => (
-                  <button key={tile.uid} onClick={() => tapAnswerTile(tile)} style={{
-                    fontSize: 26, padding: "8px 14px", borderRadius: 10, border: "none",
-                    background: wasCorrect ? "rgba(76,175,80,0.25)" : "rgba(77,208,225,0.15)",
-                    color: wasCorrect ? "#4CAF50" : "#4DD0E1",
-                    cursor: wasCorrect ? "default" : "pointer", fontFamily: "sans-serif"
-                  }} disabled={wasCorrect}>
-                    {tile.ch}
-                  </button>
-                ))}
+                {answer.map((tile, i) => {
+                  // Al fallar, marca cada ficha ya colocada según si quedó en la
+                  // posición correcta — así se ve exactamente cuál mover, en vez
+                  // de solo un mensaje genérico de error.
+                  const posOk = targetChars[i] === tile.ch;
+                  return (
+                    <button key={tile.uid} onClick={() => tapAnswerTile(tile)} style={{
+                      fontSize: 26, padding: "8px 14px", borderRadius: 10,
+                      border: wasWrong ? `2px solid ${posOk ? "#4CAF50" : "#F44336"}` : "none",
+                      background: wasCorrect ? "rgba(76,175,80,0.25)" : wasWrong ? (posOk ? "rgba(76,175,80,0.15)" : "rgba(244,67,54,0.25)") : "rgba(77,208,225,0.15)",
+                      color: wasCorrect ? "#4CAF50" : wasWrong ? (posOk ? "#4CAF50" : "#F44336") : "#4DD0E1",
+                      cursor: wasCorrect ? "default" : "pointer", fontFamily: "sans-serif"
+                    }} disabled={wasCorrect}>
+                      {tile.ch}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Feedback message */}
