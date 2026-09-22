@@ -606,15 +606,28 @@ function App() {
     return Math.round((mastered / cards.length) * 100);
   };
   const unitMastery = (unitNum) => masteryFor(ALL_CARDS.filter(c => c.unit === unitNum));
+  // Caracteres que ya "desbloquean" tus unidades seleccionadas — se usa para
+  // decidir qué tarjetas de la unidad 30 (el cajón genérico de drills de
+  // sustitución, sin una unidad de origen propia) tiene sentido mostrar: son
+  // variantes de práctica que reutilizan vocabulario de varias unidades reales,
+  // así que en vez de mostrarlas siempre (lo que hacía que filtrar por unidad
+  // pareciera no hacer nada, porque son el 70% de las tarjetas de Patrones),
+  // solo se muestran si TODO su vocabulario ya está cubierto por lo seleccionado.
+  const knownChars = new Set();
+  ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).forEach(c => {
+    const m = (c.zh || "").match(HAN_REGEX);
+    if (m) m.forEach(ch => knownChars.add(ch));
+  });
+  const isUnlockedDrill = (card) => {
+    const chars = (card.zh || "").match(/[一-鿿]/g) || [];
+    return chars.every(ch => knownChars.has(ch));
+  };
+
   // Tarjetas de una categoría de Patrones, respetando las unidades seleccionadas
   // en Opciones (igual que Flashcards/Construir/Vocabulario/Escritura) y
   // ordenadas por unidad para reflejar el orden en que se van viendo en el curso.
-  // La unidad 30 es un cajón genérico de referencia cruzada (no aparece como
-  // opción individual en Opciones — solo entra con "Todas"), así que sus
-  // tarjetas se muestran siempre; el filtro solo aplica a las que sí tienen
-  // una unidad real de origen.
   const categoryCards = (cat) => ALL_CARDS
-    .filter(c => cat.ids.includes(c.id) && (c.unit === 30 || selectedUnits.includes(c.unit)))
+    .filter(c => cat.ids.includes(c.id) && (c.unit === 30 ? isUnlockedDrill(c) : selectedUnits.includes(c.unit)))
     .sort((a, b) => a.unit - b.unit);
   const categoryMastery = (cat) => masteryFor(categoryCards(cat));
 
