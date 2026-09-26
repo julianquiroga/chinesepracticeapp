@@ -2355,6 +2355,37 @@ window.ALL_CARDS = [
     exZh: "今天我有三节课。", exPy: "Jīntiān wǒ yǒu sān jié kè.", exEs: "Hoy tengo tres clases." },
   { id: 1126, unit: 10, unitName: "L1 · Presentaciones", kind: "vocab", zh: "打", py: "dǎ", es: "golpear / marcar (llamada)",
     exZh: "请给我打电话。", exPy: "Qǐng gěi wǒ dǎ diànhuà.", exEs: "Por favor llámame." },
+
+  // Vocabulario adicional — caracteres que el Key Points del Workbook (Libro 1)
+  // marca como propios de la unidad y que no teníamos en ninguna tarjeta de esa unidad.
+  { id: 1127, unit: 2, unitName: "L1 · Nombre", kind: "vocab", zh: "嗯", py: "ń", es: "ajá, uh-huh (para asentir)",
+    exZh: "嗯，我明白了。", exPy: "Ń, wǒ míngbai le.", exEs: "Ajá, ya entendí." },
+  { id: 1128, unit: 3, unitName: "L1 · Origen", kind: "vocab", zh: "哦", py: "ó", es: "ah, ya veo",
+    exZh: "哦，你是老师啊。", exPy: "Ó, nǐ shì lǎoshī a.", exEs: "Ah, así que eres profesor." },
+  { id: 1129, unit: 4, unitName: "L1 · Trabajo", kind: "vocab", zh: "啊", py: "a", es: "partícula final que suaviza o enfatiza",
+    exZh: "这个工作真有意思啊！", exPy: "Zhège gōngzuò zhēn yǒu yìsi a!", exEs: "¡Este trabajo es realmente interesante!" },
+  { id: 1130, unit: 6, unitName: "L1 · Descripción", kind: "vocab", zh: "找", py: "zhǎo", es: "buscar",
+    exZh: "我在找我的手机。", exPy: "Wǒ zài zhǎo wǒ de shǒujī.", exEs: "Estoy buscando mi celular." },
+  { id: 1131, unit: 6, unitName: "L1 · Descripción", kind: "vocab", zh: "胖", py: "pàng", es: "gordo/a",
+    exZh: "他不太胖。", exPy: "Tā bú tài pàng.", exEs: "Él no está muy gordo." },
+  { id: 1132, unit: 6, unitName: "L1 · Descripción", kind: "vocab", zh: "那", py: "nà", es: "ese, aquel",
+    exZh: "那是我的朋友。", exPy: "Nà shì wǒ de péngyou.", exEs: "Ese es mi amigo." },
+  { id: 1133, unit: 6, unitName: "L1 · Descripción", kind: "vocab", zh: "有时", py: "yǒushí", es: "a veces",
+    exZh: "他有时很忙。", exPy: "Tā yǒushí hěn máng.", exEs: "Él a veces está muy ocupado." },
+  { id: 1134, unit: 7, unitName: "L1 · Ubicaciones", kind: "vocab", zh: "健美操", py: "jiànměicāo", es: "aeróbicos",
+    exZh: "她每天做健美操。", exPy: "Tā měitiān zuò jiànměicāo.", exEs: "Ella hace aeróbicos todos los días." },
+  { id: 1135, unit: 7, unitName: "L1 · Ubicaciones", kind: "vocab", zh: "当", py: "dāng", es: "cuando; servir como",
+    exZh: "当你到了，请给我打电话。", exPy: "Dāng nǐ dào le, qǐng gěi wǒ dǎ diànhuà.", exEs: "Cuando llegues, por favor llámame." },
+  { id: 1136, unit: 7, unitName: "L1 · Ubicaciones", kind: "vocab", zh: "见", py: "jiàn", es: "ver, encontrarse",
+    exZh: "我们下午见。", exPy: "Wǒmen xiàwǔ jiàn.", exEs: "Nos vemos en la tarde." },
+  { id: 1137, unit: 9, unitName: "L1 · Horarios", kind: "vocab", zh: "姑娘", py: "gūniang", es: "muchacha, señorita",
+    exZh: "那个姑娘是我的同事。", exPy: "Nàge gūniang shì wǒ de tóngshì.", exEs: "Esa muchacha es mi colega." },
+  { id: 1138, unit: 9, unitName: "L1 · Horarios", kind: "vocab", zh: "到", py: "dào", es: "llegar; hasta",
+    exZh: "他几点到？", exPy: "Tā jǐ diǎn dào?", exEs: "¿A qué hora llega él?" },
+  { id: 1139, unit: 9, unitName: "L1 · Horarios", kind: "vocab", zh: "总是", py: "zǒngshì", es: "siempre",
+    exZh: "她总是很忙。", exPy: "Tā zǒngshì hěn máng.", exEs: "Ella siempre está muy ocupada." },
+  { id: 1140, unit: 9, unitName: "L1 · Horarios", kind: "vocab", zh: "一项", py: "yí xiàng", es: "un asunto/artículo (medida)",
+    exZh: "这是一项重要的工作。", exPy: "Zhè shì yí xiàng zhòngyào de gōngzuò.", exEs: "Este es un trabajo importante." },
 ];
 
 window.UNIT_COLORS = {
