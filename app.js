@@ -900,8 +900,17 @@ function App() {
     setMode("study");
   };
 
+  const MIXED_MIN_SIZE = 12; // si hay menos pendientes que esto, se completa con tarjetas no vencidas
+
   const startMixed = () => {
-    const source = dueCards.length > 0 ? dueCards : ALL_CARDS.filter(c => selectedUnits.includes(c.unit));
+    const dueIds = new Set(dueCards.map(c => c.id));
+    let source = dueCards;
+    if (source.length < MIXED_MIN_SIZE) {
+      const filler = ALL_CARDS.filter(c => selectedUnits.includes(c.unit) && !dueIds.has(c.id));
+      const shuffledFiller = [...filler].sort(() => Math.random() - 0.5);
+      const needed = MIXED_MIN_SIZE - source.length;
+      source = [...source, ...shuffledFiller.slice(0, needed)];
+    }
     const shuffled = [...source].sort(() => Math.random() - 0.5);
     setMixedQueue(shuffled);
     setMixedIdx(0);
