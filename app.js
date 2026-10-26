@@ -1987,14 +1987,20 @@ function App() {
               {/* Speaker button on back */}
               <SpeakButton text={card.zh} speak={speak} speaking={speaking} color={color.accent} variant="label" label="Escuchar de nuevo" error={speechError} />
 
-              <button onClick={(e) => { e.stopPropagation(); setShowExample(s => !s); }} style={{
-                background: "none", border: `1px solid ${color.accent}44`, borderRadius: 20, padding: "6px 14px",
-                color: color.accent, fontSize: 12, cursor: "pointer"
-              }}>
-                {showExample ? "▲ Ocultar ejemplo" : "▼ Ver ejemplo"}
-              </button>
+              {lastDeckKind === "vocab" ? (
+                <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} />
+              ) : (
+                <>
+                  <button onClick={(e) => { e.stopPropagation(); setShowExample(s => !s); }} style={{
+                    background: "none", border: `1px solid ${color.accent}44`, borderRadius: 20, padding: "6px 14px",
+                    color: color.accent, fontSize: 12, cursor: "pointer"
+                  }}>
+                    {showExample ? "▲ Ocultar ejemplo" : "▼ Ver ejemplo"}
+                  </button>
 
-              {showExample && <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} />}
+                  {showExample && <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} />}
+                </>
+              )}
             </>
           )}
         </div>
