@@ -610,6 +610,11 @@ function App() {
   const [ratings, setRatings] = useState({});
   const [studyDir, setStudyDir] = useState(initialPrefs.studyDir);
   const [animating, setAnimating] = useState(false);
+  // Deslizar para calificar la tarjeta volteada: derecha = "la sé", izquierda =
+  // "no la sé" — además de los botones, que siguen siendo el respaldo accesible.
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const dragStartXRef = useRef(null);
   const [autoPlay, setAutoPlay] = useState(initialPrefs.autoPlay);
   const [progress, setProgress] = useState(() => loadProgress());
   const [charProgress, setCharProgress] = useState(() => loadProgress(CHAR_STORAGE_KEY));
@@ -1016,12 +1021,39 @@ function App() {
       setFlipped(false);
       setShowExample(false);
       setAnimating(false);
+      setDragX(0);
       if (currentIdx + 1 >= deck.length) {
         setMode("results");
       } else {
         setCurrentIdx(i => i + 1);
       }
     }, 300);
+  };
+
+  const SWIPE_THRESHOLD = 90;
+  const onCardPointerDown = (e) => {
+    if (!flipped || animating) return;
+    dragStartXRef.current = e.clientX;
+    setDragging(true);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+  const onCardPointerMove = (e) => {
+    if (!dragging || dragStartXRef.current === null) return;
+    setDragX(e.clientX - dragStartXRef.current);
+  };
+  const onCardPointerUp = () => {
+    if (!dragging) return;
+    setDragging(false);
+    dragStartXRef.current = null;
+    if (dragX > SWIPE_THRESHOLD) {
+      setDragX(600);
+      rate(RATING.know);
+    } else if (dragX < -SWIPE_THRESHOLD) {
+      setDragX(-600);
+      rate(RATING.dontKnow);
+    } else {
+      setDragX(0);
+    }
   };
 
   // Auto-play audio when card flips to reveal Chinese (algunas fichas de
@@ -2068,19 +2100,39 @@ function App() {
         </div>
 
         {/* Card */}
-        <div onClick={() => !flipped && setFlipped(true)} style={{
-          background: flipped ? color.bg : "rgba(255,255,255,0.05)",
-          borderRadius: 24, padding: "32px 24px", minHeight: 260,
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          cursor: flipped ? "default" : "pointer",
-          borderTop: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
-          borderRight: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
-          borderBottom: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
-          borderLeft: `6px solid ${color.accent}`,
-          transition: "all 0.35s ease", boxShadow: flipped ? `0 8px 32px ${color.accent}33` : "none",
-          opacity: animating ? 0 : 1,
-          transform: animating ? "scale(0.95)" : "scale(1)"
-        }}>
+        <div
+          onClick={() => !flipped && setFlipped(true)}
+          onPointerDown={onCardPointerDown}
+          onPointerMove={onCardPointerMove}
+          onPointerUp={onCardPointerUp}
+          onPointerCancel={onCardPointerUp}
+          style={{
+            position: "relative",
+            background: flipped ? color.bg : "rgba(255,255,255,0.05)",
+            borderRadius: 24, padding: "32px 24px", minHeight: 260,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            cursor: flipped ? (dragging ? "grabbing" : "grab") : "pointer",
+            touchAction: "pan-y",
+            borderTop: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
+            borderRight: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
+            borderBottom: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
+            borderLeft: `6px solid ${color.accent}`,
+            transition: dragging ? "none" : "transform 0.3s ease, opacity 0.3s ease, background 0.35s ease, box-shadow 0.35s ease",
+            boxShadow: flipped ? `0 8px 32px ${color.accent}33` : "none",
+            opacity: animating ? 0 : 1,
+            transform: `translateX(${dragX}px) rotate(${dragX / 20}deg) scale(${animating ? 0.95 : 1})`
+          }}>
+          {flipped && dragX !== 0 && (
+            <span style={{
+              position: "absolute", top: 14, [dragX > 0 ? "right" : "left"]: 14,
+              fontSize: 13, fontWeight: "bold", fontFamily: "sans-serif",
+              color: dragX > 0 ? "#2E7D32" : "#C62828",
+              opacity: Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1),
+              pointerEvents: "none"
+            }}>
+              {dragX > 0 ? "✅ La sé" : "❌ No la sé"}
+            </span>
+          )}
           {!flipped ? (
             <>
               {isReference && (
@@ -2146,7 +2198,12 @@ function App() {
 
         {/* Rating buttons */}
         {flipped && (
-          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          <p style={{ textAlign: "center", color: "#555", fontSize: 11, margin: "14px 0 0 0", fontFamily: "sans-serif" }}>
+            ↔ Desliza la tarjeta o usa los botones
+          </p>
+        )}
+        {flipped && (
+          <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
             {[
               { label: "❌ No la sé", value: RATING.dontKnow, color: "#F44336", bg: "rgba(244,67,54,0.15)" },
               { label: "🤔 Casi", value: RATING.almost, color: "#FF9D3D", bg: "rgba(255,157,61,0.15)" },
