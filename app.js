@@ -391,15 +391,27 @@ function ProgressRing({ pct, size = 84, color = "#FF9D3D" }) {
 }
 
 // ---------- Navegación principal (tabbar fijo) ----------
-const HUB_MODES = ["menu", "patterns", "buildHub", "writingHub", "vocabHub", "settings"];
+// Opciones queda fuera del tabbar a propósito: 5 destinos es el límite que
+// recomiendan Material Design / Apple HIG para una barra inferior, y Ajustes
+// es una pantalla de uso poco frecuente — encaja mejor como ícono de engranaje
+// en el header (ver SettingsGearButton), accesible igual en 1 toque desde
+// cualquier pantalla principal.
 const TABS = [
   { key: "menu", icon: "🏠", label: "Inicio" },
   { key: "patterns", icon: "📐", label: "Patrones" },
   { key: "buildHub", icon: "✏️", label: "Construir" },
   { key: "writingHub", icon: "🖌️", label: "Escritura" },
   { key: "vocabHub", icon: "🔤", label: "Vocabulario" },
-  { key: "settings", icon: "⚙️", label: "Opciones" },
 ];
+
+function SettingsGearButton({ setMode, style }) {
+  return (
+    <button onClick={() => setMode("settings")} style={{
+      background: "none", border: "none", color: "#FFD09B", fontSize: 20,
+      cursor: "pointer", padding: 4, lineHeight: 1, ...style
+    }} aria-label="Opciones">⚙️</button>
+  );
+}
 
 // ---------- Escritura de trazos ----------
 const HAN_REGEX = /[一-鿿]/g;
@@ -527,8 +539,12 @@ function HubScreen({ title, titleColor, description, mode, setMode, children }) 
   return (
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <span style={{ color: titleColor, fontSize: 15, fontWeight: "bold" }}>{title}</span>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
+          <span style={{ flex: 1 }} />
+          <span style={{ color: titleColor, fontSize: 15, fontWeight: "bold", textAlign: "center" }}>{title}</span>
+          <span style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+            <SettingsGearButton setMode={setMode} />
+          </span>
         </div>
         {description && (
           <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
@@ -654,9 +670,14 @@ function App() {
   const categoryMastery = (cat) => masteryFor(categoryCards(cat));
 
   const resetProgress = () => {
-    if (window.confirm("¿Seguro que quieres borrar todo tu progreso guardado? Esto no se puede deshacer.")) {
+    if (window.confirm("¿Seguro que quieres borrar todo tu progreso guardado (tarjetas, caracteres y racha)? Esto no se puede deshacer.")) {
       setProgress({});
       saveProgress({});
+      setCharProgress({});
+      saveProgress({}, CHAR_STORAGE_KEY);
+      const clearedStreak = { lastDate: null, current: 0, longest: 0 };
+      setStreak(clearedStreak);
+      localStorage.setItem(STREAK_KEY, JSON.stringify(clearedStreak));
     }
   };
 
@@ -1034,8 +1055,9 @@ function App() {
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         {/* Header */}
-        <div style={{ marginBottom: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <h1 style={{ color: "#FF9D3D", fontSize: 24, fontWeight: "bold", margin: 0, letterSpacing: 1 }}>🏯 长城汉语</h1>
+          <SettingsGearButton setMode={setMode} />
         </div>
 
         {/* Racha + progreso general */}
@@ -1096,18 +1118,6 @@ function App() {
           )}
         </div>
 
-        {/* Continuar donde quedé */}
-        {hasHistory && (
-          <button onClick={startStudy} disabled={selectedUnits.length === 0} style={{
-            width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "14px 18px", borderRadius: 14, marginBottom: 18, border: "1px solid rgba(255,255,255,0.15)",
-            background: "rgba(255,255,255,0.05)", cursor: selectedUnits.length === 0 ? "not-allowed" : "pointer"
-          }}>
-            <span style={{ color: "#ccc", fontSize: 13, fontFamily: "sans-serif" }}>▶️ Continuar estudiando</span>
-            <span style={{ color: "#666", fontSize: 11, fontFamily: "sans-serif" }}>{studyDir === "es→zh" ? "ES→中" : "中→ES"} · {selectedUnits.length} unidades</span>
-          </button>
-        )}
-
         {/* Navegación principal */}
         <button onClick={startStudy} disabled={selectedUnits.length === 0} style={{
           width: "100%", padding: "18px 0", borderRadius: 16, border: "none", marginBottom: 4,
@@ -1118,7 +1128,9 @@ function App() {
           📚 Flashcards · {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} tarjetas
         </button>
         <p style={{ textAlign: "center", color: "#666", fontSize: 11, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>
-          Tú eliges el tema: repasa todas las tarjetas de tus unidades seleccionadas
+          {hasHistory
+            ? `${studyDir === "es→zh" ? "ES→中" : "中→ES"} · ${selectedUnits.length} unidades seleccionadas · cambiar en Opciones`
+            : "Tú eliges el tema: repasa todas las tarjetas de tus unidades seleccionadas"}
         </p>
 
         <button onClick={() => setMode("buildHub")} style={{
@@ -1346,8 +1358,12 @@ function App() {
   if (mode === "patterns") return (
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold" }}>📐 Patrones gramaticales</span>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
+          <span style={{ flex: 1 }} />
+          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", textAlign: "center" }}>📐 Patrones gramaticales</span>
+          <span style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+            <SettingsGearButton setMode={setMode} />
+          </span>
         </div>
         <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
           Las estructuras se repiten en varias unidades — están agrupadas por tipo y ordenadas por la unidad donde aparecen, dentro de tus unidades seleccionadas.
