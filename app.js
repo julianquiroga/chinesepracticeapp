@@ -583,6 +583,8 @@ function App() {
   const initialPrefs = loadPrefs();
   const [selectedUnits, setSelectedUnits] = useState(initialPrefs.selectedUnits);
   const [mode, setMode] = useState("menu");
+  const [masteryKind, setMasteryKind] = useState("vocab"); // "vocab" | "chars" — qué lista muestra la pantalla "Dominio"
+  const [masteryFilter, setMasteryFilter] = useState("all"); // "all" | "mastered" | "learning" | "new"
   const [deck, setDeck] = useState([]);
   const [lastDeckKind, setLastDeckKind] = useState("study");
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -619,6 +621,13 @@ function App() {
     return Math.round((mastered / cards.length) * 100);
   };
   const unitMastery = (unitNum) => masteryFor(ALL_CARDS.filter(c => c.unit === unitNum));
+  // Mismo criterio que masteryFor (caja máxima = dominada), pero para un solo
+  // id contra cualquiera de los dos mapas de progreso (tarjetas o caracteres).
+  const statusFor = (id, progressMap) => {
+    const p = progressMap[id];
+    if (!p) return "new";
+    return p.box >= MAX_BOX ? "mastered" : "learning";
+  };
   // Caracteres que ya "desbloquean" tus unidades seleccionadas — se usa para
   // decidir qué tarjetas de la unidad 30 (el cajón genérico de drills de
   // sustitución, sin una unidad de origen propia) tiene sentido mostrar: son
@@ -1537,6 +1546,14 @@ function App() {
           Selecciona unidades en Opciones para practicar sus caracteres.
         </p>
       )}
+
+      <button onClick={() => { setMasteryKind("chars"); setMasteryFilter("all"); setMode("mastery"); }} style={{
+        display: "block", width: "100%", marginTop: 14, padding: "10px 0", borderRadius: 12,
+        border: "1px solid rgba(255,255,255,0.15)", background: "none",
+        color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: "sans-serif"
+      }}>
+        📊 Ver qué caracteres domino
+      </button>
     </HubScreen>
   );
 
@@ -1569,8 +1586,101 @@ function App() {
           Todavía no hay vocabulario propio para las unidades seleccionadas. Prueba con unidades 13 a 27 en Opciones.
         </p>
       )}
+
+      <button onClick={() => { setMasteryKind("vocab"); setMasteryFilter("all"); setMode("mastery"); }} style={{
+        display: "block", width: "100%", marginTop: 14, padding: "10px 0", borderRadius: 12,
+        border: "1px solid rgba(255,255,255,0.15)", background: "none",
+        color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: "sans-serif"
+      }}>
+        📊 Ver qué palabras domino
+      </button>
     </HubScreen>
   );
+
+  // Modo: Dominio — navega qué palabras/caracteres ya dominás, aprendiendo o
+  // todavía nuevos, dentro de tus unidades seleccionadas. No es un modo de
+  // estudio, solo una vista del progreso que ya guarda el SRS (progress/charProgress).
+  if (mode === "mastery") {
+    const isVocab = masteryKind === "vocab";
+    const items = isVocab
+      ? vocabCards.map(c => ({ id: c.id, zh: c.zh, py: c.py, es: c.es, status: statusFor(c.id, progress) }))
+      : writableChars.map(ch => ({ id: ch, zh: ch, py: CHAR_PINYIN[ch] || "", es: "", status: statusFor(ch, charProgress) }));
+    const counts = {
+      all: items.length,
+      mastered: items.filter(i => i.status === "mastered").length,
+      learning: items.filter(i => i.status === "learning").length,
+      new: items.filter(i => i.status === "new").length,
+    };
+    const filtered = masteryFilter === "all" ? items : items.filter(i => i.status === masteryFilter);
+    const STATUS_LABELS = { mastered: "⭐ Dominada", learning: "📈 Aprendiendo", new: "🆕 Nueva" };
+    const STATUS_COLORS = { mastered: "#4CAF50", learning: "#FF9D3D", new: "#888" };
+
+    return (
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+        <div style={{ maxWidth: 480, width: "100%" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <button onClick={() => setMode(isVocab ? "vocabHub" : "writingHub")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
+            <span style={{ color: "#FFD09B", fontSize: 13 }}>{selectedUnits.length} unidades</span>
+          </div>
+          <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 16px 0" }}>📊 {isVocab ? "Palabras" : "Caracteres"} que domino</h2>
+
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            <button onClick={() => { setMasteryKind("vocab"); setMasteryFilter("all"); }} style={{
+              flex: 1, padding: "8px 0", borderRadius: 10, border: `2px solid ${isVocab ? "#00ACC1" : "rgba(255,255,255,0.15)"}`,
+              background: isVocab ? "rgba(0,172,193,0.15)" : "transparent", color: isVocab ? "#4DD0E1" : "#888",
+              fontSize: 13, fontWeight: isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: "sans-serif"
+            }}>🔤 Palabras</button>
+            <button onClick={() => { setMasteryKind("chars"); setMasteryFilter("all"); }} style={{
+              flex: 1, padding: "8px 0", borderRadius: 10, border: `2px solid ${!isVocab ? "#C6501F" : "rgba(255,255,255,0.15)"}`,
+              background: !isVocab ? "rgba(198,80,31,0.15)" : "transparent", color: !isVocab ? "#FF9D3D" : "#888",
+              fontSize: 13, fontWeight: !isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: "sans-serif"
+            }}>🖌️ Caracteres</button>
+          </div>
+
+          <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+            {[
+              { key: "all", label: `Todas · ${counts.all}` },
+              { key: "mastered", label: `⭐ Dominadas · ${counts.mastered}` },
+              { key: "learning", label: `📈 Aprendiendo · ${counts.learning}` },
+              { key: "new", label: `🆕 Nuevas · ${counts.new}` },
+            ].map(f => (
+              <button key={f.key} onClick={() => setMasteryFilter(f.key)} style={{
+                padding: "6px 10px", borderRadius: 20, border: `1px solid ${masteryFilter === f.key ? "#FF9D3D" : "rgba(255,255,255,0.15)"}`,
+                background: masteryFilter === f.key ? "rgba(255,157,61,0.15)" : "transparent",
+                color: masteryFilter === f.key ? "#FF9D3D" : "#aaa", fontSize: 11, cursor: "pointer", fontFamily: "sans-serif"
+              }}>{f.label}</button>
+            ))}
+          </div>
+
+          {items.length === 0 && (
+            <p style={{ color: "#888", fontSize: 13, textAlign: "center", marginTop: 20 }}>
+              Selecciona unidades en Opciones para ver {isVocab ? "su vocabulario" : "sus caracteres"} aquí.
+            </p>
+          )}
+          {items.length > 0 && filtered.length === 0 && (
+            <p style={{ color: "#888", fontSize: 13, textAlign: "center", marginTop: 20 }}>
+              Nada en este filtro todavía.
+            </p>
+          )}
+
+          {filtered.map(item => (
+            <div key={item.id} style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: "10px 14px", marginBottom: 8,
+              borderLeft: `4px solid ${STATUS_COLORS[item.status]}`
+            }}>
+              <div>
+                <div style={{ color: "white", fontSize: 18, fontWeight: "bold" }}>{item.zh}</div>
+                {item.py && <div style={{ color: TONE_COLORS_LIGHT[0], fontSize: 12, fontStyle: "italic" }}>{renderPinyinTone(item.py, false)}</div>}
+                {item.es && <div style={{ color: "#aaa", fontSize: 12 }}>{item.es}</div>}
+              </div>
+              <span style={{ color: STATUS_COLORS[item.status], fontSize: 11, fontWeight: "bold", whiteSpace: "nowrap" }}>{STATUS_LABELS[item.status]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   // Modo: Escritura de trazos (sesión activa)
   if (mode === "writing") {
