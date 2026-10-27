@@ -241,6 +241,19 @@ function isDue(cardId, progress) {
   return p.nextReview <= Date.now();
 }
 
+// Mezcla Fisher-Yates — a diferencia de array.sort(() => Math.random() - 0.5),
+// da una permutación realmente uniforme. El truco del sort es sesgado (sobre
+// todo en arrays chicos) y deja las tarjetas demasiado cerca de su orden
+// original, que es por unidad — por eso el estudio se sentía "siempre igual".
+function shuffle(array) {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 // ---------- Preferencias guardadas (unidades, dirección, audio, pinyin, nivel) ----------
 const PREFS_KEY = "gwc_prefs_v1";
 const DEFAULT_PREFS = {
@@ -647,7 +660,7 @@ function App() {
   };
 
   const practiceCategory = (cat) => {
-    const shuffled = [...categoryCards(cat)].sort(() => Math.random() - 0.5);
+    const shuffled = shuffle(categoryCards(cat));
     setDeck(shuffled);
     setCurrentIdx(0);
     setFlipped(false);
@@ -657,7 +670,7 @@ function App() {
   };
 
   const startReviewToday = () => {
-    const shuffled = [...dueCards].sort(() => Math.random() - 0.5);
+    const shuffled = shuffle(dueCards);
     setDeck(shuffled);
     setCurrentIdx(0);
     setFlipped(false);
@@ -718,7 +731,7 @@ function App() {
       const distractors = getDistractorChars(correctChars, 3);
       tiles = tiles.concat(distractors.map((ch, i) => ({ ch, uid: c.id + "-d" + i + "-" + Math.random() })));
     }
-    setPool([...tiles].sort(() => Math.random() - 0.5));
+    setPool(shuffle(tiles));
     setAnswer([]);
     setBuildResult(null);
     setShowBuildAnswer(false);
@@ -728,7 +741,7 @@ function App() {
   };
 
   const startBuild = () => {
-    const shuffled = [...buildableCards].sort(() => Math.random() - 0.5);
+    const shuffled = shuffle(buildableCards);
     setBuildDeck(shuffled);
     setBuildIdx(0);
     setBuildStats({ correct: 0, wrong: 0 });
@@ -751,7 +764,7 @@ function App() {
 
   const startWriting = (dueOnly = false) => {
     const source = dueOnly ? writeDueChars : writableChars;
-    const shuffled = [...source].sort(() => Math.random() - 0.5);
+    const shuffled = shuffle(source);
     setWriteDeck(shuffled);
     setWriteIdx(0);
     setWriteComplete(false);
@@ -876,7 +889,7 @@ function App() {
 
   const startStudy = () => {
     const filtered = ALL_CARDS.filter(c => selectedUnits.includes(c.unit));
-    const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+    const shuffled = shuffle(filtered);
     setDeck(shuffled);
     setCurrentIdx(0);
     setFlipped(false);
@@ -890,7 +903,7 @@ function App() {
   const vocabDueCards = vocabCards.filter(c => isDue(c.id, progress));
   const startVocab = (dueOnly = false) => {
     const source = dueOnly ? vocabDueCards : vocabCards;
-    const shuffled = [...source].sort(() => Math.random() - 0.5);
+    const shuffled = shuffle(source);
     setDeck(shuffled);
     setCurrentIdx(0);
     setFlipped(false);
@@ -907,11 +920,11 @@ function App() {
     let source = dueCards;
     if (source.length < MIXED_MIN_SIZE) {
       const filler = ALL_CARDS.filter(c => selectedUnits.includes(c.unit) && !dueIds.has(c.id));
-      const shuffledFiller = [...filler].sort(() => Math.random() - 0.5);
+      const shuffledFiller = shuffle(filler);
       const needed = MIXED_MIN_SIZE - source.length;
       source = [...source, ...shuffledFiller.slice(0, needed)];
     }
-    const shuffled = [...source].sort(() => Math.random() - 0.5);
+    const shuffled = shuffle(source);
     setMixedQueue(shuffled);
     setMixedIdx(0);
     setMixedFlipped(false);
@@ -1306,7 +1319,7 @@ function App() {
           onClick: () => {
             const dontKnow = deck.filter(c => ratings[c.id] === RATING.dontKnow || ratings[c.id] === RATING.almost);
             if (dontKnow.length === 0) { startStudy(); return; }
-            setDeck(dontKnow.sort(() => Math.random() - 0.5));
+            setDeck(shuffle(dontKnow));
             setCurrentIdx(0); setFlipped(false); setRatings({}); setMode("study");
           },
           border: dueCount > 0 ? "2px solid rgba(255,107,53,0.4)" : "none",
