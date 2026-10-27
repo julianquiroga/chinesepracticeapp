@@ -1165,29 +1165,38 @@ function App() {
             : "Tú eliges el tema: repasa todas las tarjetas de tus unidades seleccionadas"}
         </p>
 
-        <button onClick={() => setMode("buildHub")} style={{
-          width: "100%", padding: "16px 0", borderRadius: 16, marginBottom: 10, border: "none",
-          background: "linear-gradient(135deg, #00838F, #4DD0E1)",
-          color: "white", fontSize: 15, fontWeight: "bold", cursor: "pointer", fontFamily: "sans-serif"
-        }}>
-          ✏️ Construir frases · {buildableCards.length} disponibles
-        </button>
+        {/* Modos secundarios en grilla 2x2 — menos scroll, se ve más panel que lista */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
+          <button onClick={() => setMode("buildHub")} style={{
+            padding: "14px 8px", borderRadius: 16, border: "none",
+            background: "linear-gradient(135deg, #00838F, #4DD0E1)",
+            color: "white", cursor: "pointer", fontFamily: "sans-serif",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 4
+          }}>
+            <span style={{ fontSize: 22 }}>✏️</span>
+            <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>Construir frases</span>
+            <span style={{ fontSize: 11, opacity: 0.85 }}>{buildableCards.length} disponibles</span>
+          </button>
 
-        <button onClick={() => setMode("patterns")} style={{
-          width: "100%", padding: "16px 0", borderRadius: 16, marginBottom: 10,
-          border: "2px solid rgba(255,157,61,0.4)", background: "rgba(255,157,61,0.08)",
-          color: "#FF9D3D", fontSize: 15, fontWeight: "bold", cursor: "pointer", fontFamily: "sans-serif"
-        }}>
-          📐 Patrones gramaticales · {PATTERN_CATEGORIES.reduce((sum, c) => sum + categoryCards(c).length, 0)}
-        </button>
+          <button onClick={() => setMode("patterns")} style={{
+            padding: "14px 8px", borderRadius: 16,
+            border: "2px solid rgba(255,157,61,0.4)", background: "rgba(255,157,61,0.08)",
+            color: "#FF9D3D", cursor: "pointer", fontFamily: "sans-serif",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 4
+          }}>
+            <span style={{ fontSize: 22 }}>📐</span>
+            <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>Patrones gramaticales</span>
+            <span style={{ fontSize: 11, opacity: 0.85 }}>{PATTERN_CATEGORIES.reduce((sum, c) => sum + categoryCards(c).length, 0)}</span>
+          </button>
 
-        <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length === 0} style={{
-          width: "100%", padding: "14px 0", borderRadius: 16, marginBottom: 18, border: "2px solid rgba(123,31,162,0.4)",
-          background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
-          cursor: "pointer", fontFamily: "sans-serif"
-        }}>
-          🔀 Sesión mixta · repaso + escritura intercalados
-        </button>
+          <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length === 0} style={{
+            gridColumn: "1 / -1", padding: "12px 8px", borderRadius: 16, border: "2px solid rgba(123,31,162,0.4)",
+            background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
+            cursor: "pointer", fontFamily: "sans-serif"
+          }}>
+            🔀 Sesión mixta · repaso + escritura intercalados
+          </button>
+        </div>
       </div>
       <TabBar activeMode={mode} setMode={setMode} />
     </div>
