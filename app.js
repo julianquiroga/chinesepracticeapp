@@ -154,6 +154,17 @@ const UI_STRINGS = {
   listen_hint: { es: "Recuerda el pinyin y el significado antes de revelar", en: "Recall the pinyin and meaning before revealing", fr: "Rappelez-vous le pinyin et le sens avant de révéler" },
   ver_ejemplo: { es: "▼ Ver ejemplo", en: "▼ View example", fr: "▼ Voir l'exemple" },
   ocultar_ejemplo: { es: "▲ Ocultar ejemplo", en: "▲ Hide example", fr: "▲ Masquer l'exemple" },
+  escribe_frase: { es: "ESCRIBE ESTA FRASE EN CHINO", en: "WRITE THIS SENTENCE IN CHINESE", fr: "ÉCRIVEZ CETTE PHRASE EN CHINOIS" },
+  arma_frase: { es: "ARMA ESTA FRASE EN CHINO", en: "BUILD THIS SENTENCE IN CHINESE", fr: "CONSTRUISEZ CETTE PHRASE EN CHINOIS" },
+  dictado_placeholder: { es: "打字…（使用中文键盘）", en: "Type… (use a Chinese keyboard)", fr: "Tapez… (utilisez un clavier chinois)" },
+  correcto: { es: "✅ ¡Correcto!", en: "✅ Correct!", fr: "✅ Correct !" },
+  no_coincide: { es: "❌ No coincide. Así se compara, carácter por carácter:", en: "❌ Doesn't match. Here's the character-by-character comparison:", fr: "❌ Ne correspond pas. Voici la comparaison caractère par caractère :" },
+  verificar: { es: "Verificar", en: "Check", fr: "Vérifier" },
+  toca_fichas_orden: { es: "Toca las fichas de abajo en orden", en: "Tap the tiles below in order", fr: "Touchez les tuiles ci-dessous dans l'ordre" },
+  revisa_ficha_de_mas: { es: "❌ Revisa — puede que haya una ficha de más en tu respuesta", en: "❌ Check again — your answer might have an extra tile", fr: "❌ Vérifiez — votre réponse a peut-être une tuile en trop" },
+  casi_revisa_orden: { es: "❌ Casi — revisa el orden y ajusta las fichas", en: "❌ Almost — check the order and adjust the tiles", fr: "❌ Presque — vérifiez l'ordre et ajustez les tuiles" },
+  anterior: { es: "← Anterior", en: "← Previous", fr: "← Précédent" },
+  ver_respuesta: { es: "🙈 Ver respuesta", en: "🙈 View answer", fr: "🙈 Voir la réponse" },
 };
 function t(key, lang) {
   const entry = UI_STRINGS[key];
@@ -2209,7 +2220,7 @@ function App() {
           {/* Prompt */}
           <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 16, padding: "16px 18px", marginBottom: 16, textAlign: "center" }}>
             <p style={{ color: "#4DD0E1", fontSize: 11, margin: "0 0 8px 0", letterSpacing: 1 }}>
-              {isHard ? "ESCRIBE ESTA FRASE EN CHINO" : "ARMA ESTA FRASE EN CHINO"}
+              {isHard ? t("escribe_frase", lang) : t("arma_frase", lang)}
             </p>
             <p style={{ color: "white", fontSize: 18, margin: 0, lineHeight: 1.4 }}>{cardText(buildCard, "es", lang)}</p>
           </div>
@@ -2221,7 +2232,7 @@ function App() {
                 value={typedAnswer}
                 onChange={e => setTypedAnswer(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!resolved) checkHardAnswer(); } }}
-                placeholder="打字…（使用中文键盘）"
+                placeholder={t("dictado_placeholder", lang)}
                 disabled={wasCorrect}
                 style={{
                   width: "100%", minHeight: 60, background: "rgba(255,255,255,0.05)",
@@ -2231,10 +2242,10 @@ function App() {
                 }}
               />
 
-              {wasCorrect && <p style={{ textAlign: "center", color: "#4CAF50", fontSize: 15, fontWeight: "bold", marginBottom: 12 }}>✅ ¡Correcto!</p>}
+              {wasCorrect && <p style={{ textAlign: "center", color: "#4CAF50", fontSize: 15, fontWeight: "bold", marginBottom: 12 }}>{t("correcto", lang)}</p>}
               {wasWrong && (
                 <div style={{ marginBottom: 12 }}>
-                  <p style={{ textAlign: "center", color: "#F44336", fontSize: 14, marginBottom: 8 }}>❌ No coincide. Así se compara, carácter por carácter:</p>
+                  <p style={{ textAlign: "center", color: "#F44336", fontSize: 14, marginBottom: 8 }}>{t("no_coincide", lang)}</p>
                   <p style={{ textAlign: "center", fontSize: 26, letterSpacing: 2 }}>
                     {hardDiff.map((d, i) => (
                       <span key={i} style={{ color: d.ok ? "#4CAF50" : "#F44336" }}>{d.ch}</span>
@@ -2248,7 +2259,7 @@ function App() {
                   width: "100%", padding: "12px 0", borderRadius: 14, border: "none", marginBottom: 16,
                   background: "linear-gradient(135deg, #00838F, #4DD0E1)", color: "white", fontSize: 14, fontWeight: "bold", cursor: "pointer"
                 }}>
-                  Verificar
+                  {t("verificar", lang)}
                 </button>
               )}
             </>
@@ -2261,7 +2272,7 @@ function App() {
                 border: `2px solid ${wasCorrect ? "#4CAF50" : wasWrong ? "#F44336" : "rgba(255,255,255,0.15)"}`,
                 transition: "border-color 0.3s"
               }}>
-                {answer.length === 0 && <span style={{ color: "#555", fontSize: 13 }}>Toca las fichas de abajo en orden</span>}
+                {answer.length === 0 && <span style={{ color: "#555", fontSize: 13 }}>{t("toca_fichas_orden", lang)}</span>}
                 {answer.map((tile, i) => {
                   // Al fallar, marca cada ficha ya colocada según si quedó en la
                   // posición correcta — así se ve exactamente cuál mover, en vez
@@ -2283,11 +2294,11 @@ function App() {
 
               {/* Feedback message */}
               {wasCorrect && (
-                <p style={{ textAlign: "center", color: "#4CAF50", fontSize: 15, fontWeight: "bold", marginBottom: 12 }}>✅ ¡Correcto!</p>
+                <p style={{ textAlign: "center", color: "#4CAF50", fontSize: 15, fontWeight: "bold", marginBottom: 12 }}>{t("correcto", lang)}</p>
               )}
               {wasWrong && (
                 <p style={{ textAlign: "center", color: "#F44336", fontSize: 14, marginBottom: 12 }}>
-                  {isMedium ? "❌ Revisa — puede que haya una ficha de más en tu respuesta" : "❌ Casi — revisa el orden y ajusta las fichas"}
+                  {isMedium ? t("revisa_ficha_de_mas", lang) : t("casi_revisa_orden", lang)}
                 </p>
               )}
 
@@ -2313,7 +2324,7 @@ function App() {
                   background: answer.length === 0 ? "#444" : "linear-gradient(135deg, #00838F, #4DD0E1)",
                   color: "white", fontSize: 14, fontWeight: "bold", cursor: answer.length === 0 ? "not-allowed" : "pointer"
                 }}>
-                  Verificar
+                  {t("verificar", lang)}
                 </button>
               )}
             </>
@@ -2335,7 +2346,7 @@ function App() {
                 padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
                 background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
               }}>
-                ← Anterior
+                {t("anterior", lang)}
               </button>
             )}
             <SpeakButton text={buildCard.zh} speak={speak} speaking={speaking}
@@ -2345,14 +2356,14 @@ function App() {
                 flex: 1, padding: "12px 0", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
                 background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
               }}>
-                🙈 Ver respuesta
+                {t("ver_respuesta", lang)}
               </button>
             ) : (
               <button onClick={nextBuildCard} style={{
                 flex: 1, padding: "12px 0", borderRadius: 14, border: "none",
                 background: "linear-gradient(135deg, #00838F, #4DD0E1)", color: "white", fontSize: 14, fontWeight: "bold", cursor: "pointer"
               }}>
-                Siguiente →
+                {t("siguiente", lang)}
               </button>
             )}
           </div>
