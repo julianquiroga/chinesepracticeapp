@@ -17,6 +17,174 @@ const TONE_VOWELS = {
   "À":["a",4],"È":["e",4],"Ì":["i",4],"Ò":["o",4],"Ù":["u",4],"Ǜ":["ü",4],
 };
 const TONE_COLORS_LIGHT = { 1: "#B23A2E", 2: "#8A5A00", 3: "#256B29", 4: "#1257A6", 0: "#5F5F5F" };
+
+// ---------- Textos de interfaz (ES/EN/FR) ----------
+// Diccionario único para todo el texto fijo de la UI (botones, títulos,
+// hints). Se va completando a medida que cada pantalla se vuelve
+// traducible — t("clave", lang) devuelve el texto en el idioma activo,
+// con español como respaldo si falta una clave.
+const UI_STRINGS = {
+  ver_pinyin: { es: "拼 Ver pinyin", en: "拼 View pinyin", fr: "拼 Voir le pinyin" },
+  ver_traduccion: { es: "🇲🇽 Ver traducción", en: "🇺🇸 View translation", fr: "🇫🇷 Voir la traduction" },
+  sin_audio: { es: "Esta tarjeta no tiene audio disponible", en: "This card has no audio available", fr: "Cette carte n'a pas d'audio disponible" },
+  menu_back: { es: "← Menú", en: "← Menu", fr: "← Menu" },
+  categorias_back: { es: "← Categorías", en: "← Categories", fr: "← Catégories" },
+  unidades_suffix: { es: "unidades", en: "units", fr: "unités" },
+  mastery_title_vocab: { es: "Palabras que domino", en: "Words I've mastered", fr: "Mots que je maîtrise" },
+  mastery_title_chars: { es: "Caracteres que domino", en: "Characters I've mastered", fr: "Caractères que je maîtrise" },
+  tab_palabras: { es: "🔤 Palabras", en: "🔤 Words", fr: "🔤 Mots" },
+  tab_caracteres: { es: "🖌️ Caracteres", en: "🖌️ Characters", fr: "🖌️ Caractères" },
+  filter_todas: { es: "Todas", en: "All", fr: "Toutes" },
+  filter_dominadas: { es: "⭐ Dominadas", en: "⭐ Mastered", fr: "⭐ Maîtrisés" },
+  filter_aprendiendo: { es: "📈 Aprendiendo", en: "📈 Learning", fr: "📈 En cours" },
+  filter_nuevas: { es: "🆕 Nuevas", en: "🆕 New", fr: "🆕 Nouveaux" },
+  status_dominada: { es: "⭐ Dominada", en: "⭐ Mastered", fr: "⭐ Maîtrisé" },
+  status_aprendiendo: { es: "📈 Aprendiendo", en: "📈 Learning", fr: "📈 En cours" },
+  status_nueva: { es: "🆕 Nueva", en: "🆕 New", fr: "🆕 Nouveau" },
+  mastery_empty_select_vocab: { es: "Selecciona unidades en Opciones para ver su vocabulario aquí.", en: "Select units in Settings to see its vocabulary here.", fr: "Sélectionnez des unités dans Options pour voir son vocabulaire ici." },
+  mastery_empty_select_chars: { es: "Selecciona unidades en Opciones para ver sus caracteres aquí.", en: "Select units in Settings to see its characters here.", fr: "Sélectionnez des unités dans Options pour voir ses caractères ici." },
+  mastery_empty_filter: { es: "Nada en este filtro todavía.", en: "Nothing in this filter yet.", fr: "Rien dans ce filtre pour l'instant." },
+  opciones_title: { es: "⚙️ Opciones", en: "⚙️ Settings", fr: "⚙️ Options" },
+  idioma_title: { es: "Idioma", en: "Language", fr: "Langue" },
+  direccion_title: { es: "Dirección de estudio", en: "Study direction", fr: "Sens d'étude" },
+  dir_prompt_zh: { es: "🇲🇽 → 🇨🇳 Español a Chino", en: "🇬🇧 → 🇨🇳 English to Chinese", fr: "🇫🇷 → 🇨🇳 Français à chinois" },
+  dir_zh_prompt: { es: "🇨🇳 → 🇲🇽 Chino a Español", en: "🇨🇳 → 🇬🇧 Chinese to English", fr: "🇨🇳 → 🇫🇷 Chinois à français" },
+  dir_listen: { es: "🔊 Solo audio (producción)", en: "🔊 Audio only (production)", fr: "🔊 Audio seulement (production)" },
+  dir_listen_hint: { es: '"Solo audio" te reta a recordar el pinyin y el significado antes de revelar — sin ver el carácter primero.', en: '"Audio only" challenges you to recall the pinyin and meaning before revealing — without seeing the character first.', fr: '« Audio seulement » vous met au défi de retrouver le pinyin et le sens avant de révéler — sans voir le caractère d\'abord.' },
+  toggle_audio: { es: "🔊 Reproducir audio al revelar", en: "🔊 Play audio on reveal", fr: "🔊 Lire l'audio à la révélation" },
+  toggle_pinyin: { es: "拼 Mostrar pinyin al revelar", en: "拼 Show pinyin on reveal", fr: "拼 Afficher le pinyin à la révélation" },
+  limite_diario_title: { es: "Límite diario de repaso", en: "Daily review limit", fr: "Limite quotidienne de révision" },
+  limite_diario_hint: { es: "Evita repasos interminables en un solo día", en: "Avoids endless reviews in a single day", fr: "Évite des révisions interminables en une seule journée" },
+  sin_limite: { es: "Sin límite", en: "No limit", fr: "Sans limite" },
+  seleccionar_unidades: { es: "Seleccionar unidades", en: "Select units", fr: "Sélectionner les unités" },
+  todas: { es: "Todas", en: "All", fr: "Toutes" },
+  ninguna: { es: "Ninguna", en: "None", fr: "Aucune" },
+  libro1_unidades: { es: "📙 LIBRO 1 — Unidades", en: "📙 BOOK 1 — Units", fr: "📙 LIVRE 1 — Unités" },
+  libro2: { es: "📗 LIBRO 2", en: "📗 BOOK 2", fr: "📗 LIVRE 2" },
+  libro3: { es: "📘 LIBRO 3", en: "📘 BOOK 3", fr: "📘 LIVRE 3" },
+  tarjetas_seleccionadas: { es: "tarjetas seleccionadas", en: "cards selected", fr: "cartes sélectionnées" },
+  reiniciar_progreso: { es: "Reiniciar progreso guardado", en: "Reset saved progress", fr: "Réinitialiser la progression enregistrée" },
+  reiniciar_progreso_confirm: {
+    es: "¿Seguro que quieres borrar todo tu progreso guardado (tarjetas, caracteres y racha)? Esto no se puede deshacer.",
+    en: "Are you sure you want to erase all your saved progress (cards, characters and streak)? This can't be undone.",
+    fr: "Voulez-vous vraiment effacer toute votre progression enregistrée (cartes, caractères et série) ? Cette action est irréversible.",
+  },
+  dia_seguido: { es: "día seguido", en: "day streak", fr: "jour de suite" },
+  dias_seguidos: { es: "días seguidos", en: "day streak", fr: "jours de suite" },
+  bienvenido_title: { es: "👋 ¡Bienvenido!", en: "👋 Welcome!", fr: "👋 Bienvenue !" },
+  bienvenido_hint: { es: "Estudia tu primera tarjeta para empezar a ver tu progreso aquí", en: "Study your first card to start seeing your progress here", fr: "Étudiez votre première carte pour commencer à voir vos progrès ici" },
+  repaso_hoy_title: { es: "📅 Repaso de hoy", en: "📅 Today's review", fr: "📅 Révision du jour" },
+  repaso_hoy_hint: { es: "El sistema elige qué se te va a olvidar pronto, de todas tus unidades", en: "The system picks what you're about to forget, across all your units", fr: "Le système choisit ce que vous allez bientôt oublier, dans toutes vos unités" },
+  tarjetas_suffix: { es: "tarjetas", en: "cards", fr: "cartes" },
+  nuevas_suffix: { es: "nuevas", en: "new", fr: "nouvelles" },
+  repaso_suffix: { es: "repaso", en: "review", fr: "révision" },
+  repasar_btn: { es: "Repasar →", en: "Review →", fr: "Réviser →" },
+  repaso_completo: { es: "🎉 ¡Ya repasaste todo por hoy! Vuelve mañana.", en: "🎉 You've reviewed everything for today! Come back tomorrow.", fr: "🎉 Vous avez tout révisé pour aujourd'hui ! Revenez demain." },
+  flashcards_btn: { es: "📚 Flashcards", en: "📚 Flashcards", fr: "📚 Cartes mémo" },
+  cambiar_en_opciones: { es: "unidades seleccionadas · cambiar en Opciones", en: "units selected · change in Settings", fr: "unités sélectionnées · changer dans Options" },
+  home_subtitle_welcome: { es: "Tú eliges el tema: repasa todas las tarjetas de tus unidades seleccionadas", en: "You choose the topic: review all the cards from your selected units", fr: "Vous choisissez le thème : révisez toutes les cartes de vos unités sélectionnées" },
+  construir_frases: { es: "Construir frases", en: "Build sentences", fr: "Construire des phrases" },
+  disponibles_suffix: { es: "disponibles", en: "available", fr: "disponibles" },
+  patrones_gramaticales: { es: "Patrones gramaticales", en: "Grammar patterns", fr: "Structures grammaticales" },
+  sesion_mixta: { es: "🔀 Sesión mixta · repaso + escritura intercalados", en: "🔀 Mixed session · review + writing interleaved", fr: "🔀 Session mixte · révision + écriture entrelacées" },
+  dir_short_prompt_zh: { es: "ES→中", en: "EN→中", fr: "FR→中" },
+  dir_short_zh_prompt: { es: "中→ES", en: "中→EN", fr: "中→FR" },
+  tab_inicio: { es: "Inicio", en: "Home", fr: "Accueil" },
+  tab_patrones: { es: "Patrones", en: "Patterns", fr: "Structures" },
+  tab_construir: { es: "Construir", en: "Build", fr: "Construire" },
+  tab_escritura: { es: "Escritura", en: "Writing", fr: "Écriture" },
+  tab_vocabulario: { es: "Vocabulario", en: "Vocabulary", fr: "Vocabulaire" },
+  construir_frases_title: { es: "✏️ Construir frases", en: "✏️ Build sentences", fr: "✏️ Construire des phrases" },
+  construir_desc: { es: "Arma la frase en chino con las fichas, o escríbela de memoria en 听写. Elige el nivel:", en: "Build the sentence in Chinese with the tiles, or write it from memory in 听写 (dictation). Pick a level:", fr: "Construisez la phrase en chinois avec les tuiles, ou écrivez-la de mémoire en 听写 (dictée). Choisissez un niveau :" },
+  nivel_facil: { es: "🟢 Fácil", en: "🟢 Easy", fr: "🟢 Facile" },
+  nivel_medio: { es: "🟡 Medio", en: "🟡 Medium", fr: "🟡 Moyen" },
+  comenzar: { es: "Comenzar", en: "Start", fr: "Commencer" },
+  escritura_title: { es: "🖌️ Escritura", en: "🖌️ Writing", fr: "🖌️ Écriture" },
+  escritura_desc: { es: "Practica el orden de trazos de los caracteres de tus unidades seleccionadas, uno por uno.", en: "Practice the stroke order of the characters from your selected units, one at a time.", fr: "Entraînez-vous à l'ordre des traits des caractères de vos unités sélectionnées, un par un." },
+  repasar_pendientes_hoy: { es: "📅 Repasar pendientes de hoy", en: "📅 Review today's pending", fr: "📅 Réviser les éléments du jour" },
+  caracteres_suffix: { es: "caracteres", en: "characters", fr: "caractères" },
+  selecciona_unidades_chars: { es: "Selecciona unidades en Opciones para practicar sus caracteres.", en: "Select units in Settings to practice their characters.", fr: "Sélectionnez des unités dans Options pour pratiquer leurs caractères." },
+  ver_que_caracteres_domino: { es: "📊 Ver qué caracteres domino", en: "📊 See which characters I've mastered", fr: "📊 Voir les caractères que je maîtrise" },
+  vocab_title: { es: "🔤 Vocabulario", en: "🔤 Vocabulary", fr: "🔤 Vocabulaire" },
+  vocab_desc: { es: "Estudia solo los términos de tus unidades seleccionadas — carácter, pinyin y significado, con una frase de ejemplo.", en: "Study just the terms from your selected units — character, pinyin and meaning, with an example sentence.", fr: "Étudiez seulement les termes de vos unités sélectionnées — caractère, pinyin et sens, avec une phrase d'exemple." },
+  terminos_suffix: { es: "términos", en: "terms", fr: "termes" },
+  vocab_empty: { es: "Todavía no hay vocabulario propio para las unidades seleccionadas. Prueba con unidades 13 a 27 en Opciones.", en: "There's no dedicated vocabulary for your selected units yet. Try units 13 to 27 in Settings.", fr: "Il n'y a pas encore de vocabulaire dédié pour vos unités sélectionnées. Essayez les unités 13 à 27 dans Options." },
+  ver_que_palabras_domino: { es: "📊 Ver qué palabras domino", en: "📊 See which words I've mastered", fr: "📊 Voir les mots que je maîtrise" },
+  patrones_title: { es: "📐 Patrones gramaticales", en: "📐 Grammar patterns", fr: "📐 Structures grammaticales" },
+  patrones_desc: { es: "Las estructuras se repiten en varias unidades — están agrupadas por tipo y ordenadas por la unidad donde aparecen, dentro de tus unidades seleccionadas.", en: "These structures repeat across several units — they're grouped by type and ordered by the unit where they appear, within your selected units.", fr: "Ces structures se répètent dans plusieurs unités — elles sont groupées par type et classées par l'unité où elles apparaissent, parmi vos unités sélectionnées." },
+  patrones_suffix: { es: "patrones", en: "patterns", fr: "structures" },
+  pattern_empty: { es: "Todavía no has seleccionado ninguna unidad con este patrón — elegí más unidades en Opciones para verlo aquí.", en: "You haven't selected a unit with this pattern yet — pick more units in Settings to see it here.", fr: "Vous n'avez pas encore sélectionné d'unité avec cette structure — choisissez plus d'unités dans Options pour la voir ici." },
+  practicar_patrones: { es: "🎯 Practicar estos patrones", en: "🎯 Practice these patterns", fr: "🎯 Pratiquer ces structures" },
+  ronda_completada: { es: "¡Ronda completada!", en: "Round complete!", fr: "Manche terminée !" },
+  tarjetas_estudiadas: { es: "tarjetas estudiadas", en: "cards studied", fr: "cartes étudiées" },
+  stat_las_se: { es: "✅ Las sé", en: "✅ I know them", fr: "✅ Je les connais" },
+  stat_casi: { es: "🤔 Casi", en: "🤔 Almost", fr: "🤔 Presque" },
+  stat_repasar: { es: "❌ Repasar", en: "❌ To review", fr: "❌ À revoir" },
+  seguir_repaso_hoy: { es: "📅 Seguir con el repaso de hoy", en: "📅 Continue today's review", fr: "📅 Continuer la révision du jour" },
+  pendientes_suffix: { es: "pendientes", en: "pending", fr: "en attente" },
+  repasar_fallidas: { es: "🔄 Repasar las que me fallaron", en: "🔄 Review the ones I missed", fr: "🔄 Réviser celles que j'ai ratées" },
+  construir_con_unidades: { es: "✏️ Construir frases con estas unidades", en: "✏️ Build sentences with these units", fr: "✏️ Construire des phrases avec ces unités" },
+  nueva_ronda: { es: "🔀 Nueva ronda completa", en: "🔀 New full round", fr: "🔀 Nouvelle manche complète" },
+  menu_principal: { es: "← Menú principal", en: "← Main menu", fr: "← Menu principal" },
+  ronda_frases_completada: { es: "¡Ronda de frases completada!", en: "Sentence round complete!", fr: "Manche de phrases terminée !" },
+  frases_construidas: { es: "frases construidas", en: "sentences built", fr: "phrases construites" },
+  a_la_primera: { es: "✅ A la primera", en: "✅ First try", fr: "✅ Du premier coup" },
+  con_errores: { es: "❌ Con errores", en: "❌ With mistakes", fr: "❌ Avec des erreurs" },
+  otra_ronda: { es: "🔀 Otra ronda", en: "🔀 Another round", fr: "🔀 Une autre manche" },
+  repasar_flashcards: { es: "📚 Repasar como flashcards", en: "📚 Review as flashcards", fr: "📚 Réviser comme des cartes mémo" },
+  tienes_pendientes_hoy: { es: "📅 Tienes {n} pendientes de repaso hoy", en: "📅 You have {n} pending for review today", fr: "📅 Vous avez {n} en attente de révision aujourd'hui" },
+  completo: { es: "✅ ¡Completo!", en: "✅ Complete!", fr: "✅ Terminé !" },
+  reiniciar: { es: "🔄 Reiniciar", en: "🔄 Reset", fr: "🔄 Réinitialiser" },
+  pista: { es: "💡 Pista", en: "💡 Hint", fr: "💡 Indice" },
+  pinyin_toggle: { es: "拼 Pinyin", en: "拼 Pinyin", fr: "拼 Pinyin" },
+  terminar: { es: "Terminar", en: "Finish", fr: "Terminer" },
+  siguiente: { es: "Siguiente →", en: "Next →", fr: "Suivant →" },
+  toca_revelar: { es: "Toca para revelar", en: "Tap to reveal", fr: "Touchez pour révéler" },
+  escuchar_de_nuevo: { es: "Escuchar de nuevo", en: "Listen again", fr: "Écouter à nouveau" },
+  no_la_se: { es: "❌ No la sé", en: "❌ I don't know it", fr: "❌ Je ne sais pas" },
+  casi: { es: "🤔 Casi", en: "🤔 Almost", fr: "🤔 Presque" },
+  la_se: { es: "✅ La sé", en: "✅ I know it", fr: "✅ Je le sais" },
+  sesion_mixta_badge: { es: "🔀 Sesión mixta", en: "🔀 Mixed session", fr: "🔀 Session mixte" },
+  mixed_hint: { es: "Al calificar, si esta tarjeta tiene un carácter practicable pasarás a escribirlo antes de seguir", en: "After rating, if this card has a practicable character you'll write it before continuing", fr: "Après la notation, si cette carte a un caractère pratiquable, vous l'écrirez avant de continuer" },
+  swipe_hint: { es: "↔ Desliza la tarjeta o usa los botones", en: "↔ Swipe the card or use the buttons", fr: "↔ Faites glisser la carte ou utilisez les boutons" },
+  ver_explicacion: { es: "Ver explicación 📖", en: "View explanation 📖", fr: "Voir l'explication 📖" },
+  revelar: { es: "Revelar 👁", en: "Reveal 👁", fr: "Révéler 👁" },
+  toca_revelar_referencia: { es: "Toca para ver la explicación", en: "Tap to view the explanation", fr: "Touchez pour voir l'explication" },
+  ficha_referencia: { es: "📖 Ficha de referencia", en: "📖 Reference card", fr: "📖 Fiche de référence" },
+  listen_hint: { es: "Recuerda el pinyin y el significado antes de revelar", en: "Recall the pinyin and meaning before revealing", fr: "Rappelez-vous le pinyin et le sens avant de révéler" },
+  ver_ejemplo: { es: "▼ Ver ejemplo", en: "▼ View example", fr: "▼ Voir l'exemple" },
+  ocultar_ejemplo: { es: "▲ Ocultar ejemplo", en: "▲ Hide example", fr: "▲ Masquer l'exemple" },
+};
+function t(key, lang) {
+  const entry = UI_STRINGS[key];
+  if (!entry) return key; // clave sin traducir todavía — mejor mostrar la clave que romper el render
+  return entry[lang] || entry.es;
+}
+// Como t(), pero sustituye "{n}" por un valor — para frases cuyo orden de
+// palabras cambia según el idioma y no se pueden armar concatenando partes.
+function tn(key, lang, n) {
+  return t(key, lang).replace("{n}", n);
+}
+
+// Traducciones de los labels de PATTERN_CATEGORIES (definida más abajo), por
+// separado del array mismo para no tocar su forma — validate-data.js la
+// extrae con una regex que espera exactamente esa estructura.
+const PATTERN_CATEGORY_LABELS = {
+  medidas: { en: "Measurements and quantities", fr: "Mesures et quantités" },
+  posesion: { en: "的 and possession", fr: "的 et possession" },
+  tiempo: { en: "Time", fr: "Temps" },
+  poder: { en: "Ability and permission", fr: "Capacité et permission" },
+  ubicacion: { en: "Location and direction", fr: "Lieu et direction" },
+  preguntas: { en: "Special questions", fr: "Questions spéciales" },
+  matices: { en: "Easily confused words", fr: "Mots faciles à confondre" },
+  estructura: { en: "Sentence structure", fr: "Structure de la phrase" },
+  tonos: { en: "Tones and radicals", fr: "Tons et radicaux" },
+  clasificadores: { en: "量词 · Measure words", fr: "量词 · Classificateurs" },
+};
+function categoryLabel(cat, lang) {
+  if (lang === "es" || !lang) return cat.label;
+  return (PATTERN_CATEGORY_LABELS[cat.key] && PATTERN_CATEGORY_LABELS[cat.key][lang]) || cat.label;
+}
 const TONE_COLORS_DARK  = { 1: "#FF8A80", 2: "#FFB74D", 3: "#81C784", 4: "#82C4FF", 0: "#BDBDBD" };
 
 // Iniciales y finales válidas del pinyin, para partir una palabra pegada
@@ -139,7 +307,7 @@ function useSpeech() {
 }
 
 
-function FrontPinyinReveal({ pinyin, cardId, showPinyin }) {
+function FrontPinyinReveal({ pinyin, cardId, showPinyin, lang }) {
   const [shown, setShown] = useState(false);
   useEffect(() => setShown(false), [cardId]);
   if (!showPinyin) return null;
@@ -149,14 +317,14 @@ function FrontPinyinReveal({ pinyin, cardId, showPinyin }) {
       borderRadius: 20, padding: "7px 18px", color: "#FF9D3D",
       fontSize: 13, cursor: "pointer"
     }}>
-      拼 Ver pinyin
+      {t("ver_pinyin", lang)}
     </button>
   ) : (
     <div style={{ fontSize: 16, fontStyle: "italic", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(pinyin, true)}</div>
   );
 }
 
-function ExampleBox({ card, color, speak, speaking, showPinyin }) {
+function ExampleBox({ card, color, speak, speaking, showPinyin, lang }) {
   const [showPy, setShowPy] = useState(false);
   const [showEs, setShowEs] = useState(false);
   return (
@@ -175,7 +343,7 @@ function ExampleBox({ card, color, speak, speaking, showPinyin }) {
 
       {/* Pinyin reveal */}
       {showPinyin && (!showPy ? (
-        <RevealButton onClick={() => setShowPy(true)} color={color.accent}>拼 Ver pinyin</RevealButton>
+        <RevealButton onClick={() => setShowPy(true)} color={color.accent}>{t("ver_pinyin", lang)}</RevealButton>
       ) : (
         <p style={{ fontSize: 13, textAlign: "center", margin: "0 0 6px 0", fontStyle: "italic", color: TONE_COLORS_LIGHT[0] }}>
           {renderPinyinTone(card.exPy, false)}
@@ -184,10 +352,10 @@ function ExampleBox({ card, color, speak, speaking, showPinyin }) {
 
       {/* Translation reveal */}
       {!showEs ? (
-        <RevealButton onClick={() => setShowEs(true)} color={color.accent}>🇲🇽 Ver traducción</RevealButton>
+        <RevealButton onClick={() => setShowEs(true)} color={color.accent}>{t("ver_traduccion", lang)}</RevealButton>
       ) : (
         <p style={{ fontSize: 13, color: "#444", textAlign: "center", margin: "0", lineHeight: 1.5 }}>
-          {card.exEs}
+          {cardText(card, "exEs", lang)}
         </p>
       )}
     </div>
@@ -258,11 +426,12 @@ function shuffle(array) {
 const PREFS_KEY = "gwc_prefs_v1";
 const DEFAULT_PREFS = {
   selectedUnits: [1,2,3,4,5,6,7,8,9,10,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],
-  studyDir: "es→zh",
+  studyDir: "es→zh", // identificador interno, no se traduce — "es→zh" sigue significando "idioma de la UI → chino"
   showPinyin: true,
   autoPlay: true,
   builderLevel: "easy",
   dailyCap: 0, // 0 = sin límite de tarjetas de repaso por día
+  lang: "es", // "es" | "en" | "fr" — idioma de la interfaz y del significado/ejemplo de las tarjetas
 };
 
 function loadPrefs() {
@@ -334,6 +503,83 @@ function isSpeakableZh(text) {
   return !/[（(a-zA-Z]/.test(text.replace(/[❌✅]/g, ""));
 }
 
+// ---------- Idioma de interfaz/contenido ----------
+// Las 1209 tarjetas guardan su significado en es/exEs (español, el idioma
+// original del proyecto) y opcionalmente en/exEn y fr/exFr. cardText() es el
+// único punto que decide qué campo mostrar, con español como respaldo si una
+// tarjeta todavía no tiene su traducción a en/fr cargada.
+const FIELD_LANG_MAP = {
+  es: { en: "en", fr: "fr" },
+  exEs: { en: "exEn", fr: "exFr" },
+};
+function cardText(card, field, lang) {
+  if (!card) return "";
+  if (lang === "es" || !lang) return card[field] ?? "";
+  const targetField = FIELD_LANG_MAP[field] && FIELD_LANG_MAP[field][lang];
+  if (!targetField) return card[field] ?? ""; // campo sin variante por idioma (ej. zh, py)
+  return card[targetField] ?? card[field] ?? ""; // si falta la traducción, cae a español
+}
+
+// Los nombres de unidad (25 unidades reales + 8 categorías genéricas de la
+// unidad 30) son los únicos textos "de contenido" que se repiten entre
+// muchas tarjetas, así que se traducen una sola vez acá en vez de guardar
+// unitName por idioma en cada una de las 1209 tarjetas.
+const UNIT_TOPICS = {
+  1: { en: "Greetings", fr: "Salutations" },
+  2: { en: "Name", fr: "Nom" },
+  3: { en: "Origin", fr: "Origine" },
+  4: { en: "Work", fr: "Travail" },
+  5: { en: "Age", fr: "Âge" },
+  6: { en: "Description", fr: "Description" },
+  7: { en: "Locations", fr: "Lieux" },
+  8: { en: "Family", fr: "Famille" },
+  9: { en: "Schedules", fr: "Horaires" },
+  10: { en: "Introductions", fr: "Présentations" },
+  13: { en: "Birthday", fr: "Anniversaire" },
+  14: { en: "Where are you?", fr: "Où es-tu ?" },
+  15: { en: "My bag is red", fr: "Mon sac est rouge" },
+  16: { en: "How do you get there?", fr: "Comment y aller ?" },
+  17: { en: "Shopping", fr: "Faire les courses" },
+  18: { en: "Ordering food", fr: "Commander à manger" },
+  19: { en: "Phone call", fr: "Appel téléphonique" },
+  20: { en: "My room", fr: "Ma chambre" },
+  21: { en: "Transportation", fr: "Transport" },
+  22: { en: "Asking for help", fr: "Demander de l'aide" },
+  23: { en: "Weather", fr: "Météo" },
+  24: { en: "Ongoing action", fr: "Action en cours" },
+  25: { en: "Habits and tastes", fr: "Habitudes et saveurs" },
+  26: { en: "Housing and neighborhood", fr: "Logement et quartier" },
+  27: { en: "Mail and packages", fr: "Courrier et colis" },
+};
+const UNIT30_TOPICS = {
+  "Clasificadores": { en: "Classifiers", fr: "Classificateurs" },
+  "Estructura": { en: "Structure", fr: "Structure" },
+  "Matices": { en: "Nuances", fr: "Nuances" },
+  "Medidas": { en: "Measurements", fr: "Mesures" },
+  "Preguntas": { en: "Questions", fr: "Questions" },
+  "Tiempo": { en: "Time", fr: "Temps" },
+  "Ubicación": { en: "Location", fr: "Lieu" },
+  "的": { en: "的", fr: "的" },
+};
+// Reconstruye el unitName visible en el idioma activo. En español se usa el
+// campo guardado tal cual (es la fuente de verdad, incluida la marca 📐 que
+// isPatternCard() sigue leyendo de ahí sin importar el idioma mostrado).
+function displayUnitName(card, lang) {
+  if (!card) return "";
+  if (lang === "es" || !lang) return card.unitName;
+  const pattern = isPatternCard(card) ? "📐 " : "";
+  if (card.unit === 30) {
+    const key = card.unitName.replace(/^📐 Patrón · /, "").trim();
+    const topic = (UNIT30_TOPICS[key] && UNIT30_TOPICS[key][lang]) || key;
+    return `📐 ${lang === "fr" ? "Motif" : "Pattern"} · ${topic}`;
+  }
+  const b = bookInfo(card.unit);
+  if (!b) return card.unitName;
+  const prefix = b.book === 1 ? "" : "📗 ";
+  const topic = (UNIT_TOPICS[card.unit] && UNIT_TOPICS[card.unit][lang]) || "";
+  return `${prefix}L${b.book} · ${pattern}${topic}`;
+}
+
 // ---------- Libros ----------
 // El contenido viene de 3 libros de texto distintos, cada uno con su propia
 // numeración de unidades dentro de la app: Libro 1 = unidades 1-10 (sin offset),
@@ -397,11 +643,11 @@ function ProgressRing({ pct, size = 84, color = "#FF9D3D" }) {
 // en el header (ver SettingsGearButton), accesible igual en 1 toque desde
 // cualquier pantalla principal.
 const TABS = [
-  { key: "menu", icon: "🏠", label: "Inicio" },
-  { key: "patterns", icon: "📐", label: "Patrones" },
-  { key: "buildHub", icon: "✏️", label: "Construir" },
-  { key: "writingHub", icon: "🖌️", label: "Escritura" },
-  { key: "vocabHub", icon: "🔤", label: "Vocabulario" },
+  { key: "menu", icon: "🏠", labelKey: "tab_inicio" },
+  { key: "patterns", icon: "📐", labelKey: "tab_patrones" },
+  { key: "buildHub", icon: "✏️", labelKey: "tab_construir" },
+  { key: "writingHub", icon: "🖌️", labelKey: "tab_escritura" },
+  { key: "vocabHub", icon: "🔤", labelKey: "tab_vocabulario" },
 ];
 
 function SettingsGearButton({ setMode, style }) {
@@ -431,7 +677,7 @@ function uniqueCharsForUnits(units) {
   return chars;
 }
 
-function TabBar({ activeMode, setMode }) {
+function TabBar({ activeMode, setMode, lang }) {
   return (
     <>
       <style>{`.gwc-tab:active { transform: scale(0.9); }`}</style>
@@ -453,7 +699,7 @@ function TabBar({ activeMode, setMode }) {
               transition: "color 0.15s ease, transform 0.1s ease"
             }}>
               <span style={{ fontSize: 20, lineHeight: 1, filter: active ? "none" : "grayscale(0.5) opacity(0.75)" }}>{tab.icon}</span>
-              {tab.label}
+              {t(tab.labelKey, lang)}
             </button>
           );
         })}
@@ -535,7 +781,7 @@ function RevealButton({ onClick, children, color = "#FF9D3D" }) {
 
 // Envoltorio de las pantallas "hub" de cada modo (Construir/Escritura/Vocabulario):
 // título centrado + descripción opcional + contenido propio + tabbar.
-function HubScreen({ title, titleColor, description, mode, setMode, children }) {
+function HubScreen({ title, titleColor, description, mode, setMode, lang, children }) {
   return (
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
@@ -553,7 +799,7 @@ function HubScreen({ title, titleColor, description, mode, setMode, children }) 
         )}
         {children}
       </div>
-      <TabBar activeMode={mode} setMode={setMode} />
+      <TabBar activeMode={mode} setMode={setMode} lang={lang} />
     </div>
   );
 }
@@ -609,6 +855,7 @@ function App() {
   const [showExample, setShowExample] = useState(false);
   const [ratings, setRatings] = useState({});
   const [studyDir, setStudyDir] = useState(initialPrefs.studyDir);
+  const [lang, setLang] = useState(initialPrefs.lang);
   const [animating, setAnimating] = useState(false);
   // Deslizar para calificar la tarjeta volteada: derecha = "la sé", izquierda =
   // "no la sé" — además de los botones, que siguen siendo el respaldo accesible.
@@ -675,7 +922,7 @@ function App() {
   const categoryMastery = (cat) => masteryFor(categoryCards(cat));
 
   const resetProgress = () => {
-    if (window.confirm("¿Seguro que quieres borrar todo tu progreso guardado (tarjetas, caracteres y racha)? Esto no se puede deshacer.")) {
+    if (window.confirm(t("reiniciar_progreso_confirm", lang))) {
       setProgress({});
       saveProgress({});
       setCharProgress({});
@@ -728,8 +975,8 @@ function App() {
 
   // Guarda preferencias automáticamente cuando cambian (va aquí porque necesita builderLevel ya declarado)
   useEffect(() => {
-    savePrefs({ selectedUnits, studyDir, showPinyin, autoPlay, builderLevel, dailyCap });
-  }, [selectedUnits, studyDir, showPinyin, autoPlay, builderLevel, dailyCap]);
+    savePrefs({ selectedUnits, studyDir, showPinyin, autoPlay, builderLevel, dailyCap, lang });
+  }, [selectedUnits, studyDir, showPinyin, autoPlay, builderLevel, dailyCap, lang]);
   const [buildDeck, setBuildDeck] = useState([]);
   const [buildIdx, setBuildIdx] = useState(0);
   const [pool, setPool] = useState([]);
@@ -1033,6 +1280,10 @@ function App() {
   const SWIPE_THRESHOLD = 90;
   const onCardPointerDown = (e) => {
     if (!flipped || animating) return;
+    // No capturar el puntero si el toque empezó en un botón/control interno
+    // (Escuchar, Ver ejemplo, revelar pinyin/traducción) — capturarlo ahí le
+    // roba el pointerup a ese botón y el click nunca llega a dispararse.
+    if (e.target.closest && e.target.closest("button")) return;
     dragStartXRef.current = e.clientX;
     setDragging(true);
     e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -1081,7 +1332,7 @@ function App() {
 
   const back_zh = card?.zh;
   const back_py = card?.py;
-  const back_es = card?.es;
+  const back_es = cardText(card, "es", lang);
 
   if (mode === "menu") return (
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
@@ -1099,7 +1350,7 @@ function App() {
             <div style={{ flex: 1 }}>
               {streak.current > 0 && (
                 <p style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", margin: "0 0 6px 0", fontFamily: "sans-serif" }}>
-                  🔥 {streak.current} {streak.current === 1 ? "día seguido" : "días seguidos"}
+                  🔥 {streak.current} {streak.current === 1 ? t("dia_seguido", lang) : t("dias_seguidos", lang)}
                 </p>
               )}
               <div style={{ display: "flex", gap: 12, fontSize: 11, fontFamily: "sans-serif", flexWrap: "wrap" }}>
@@ -1111,8 +1362,8 @@ function App() {
           </div>
         ) : (
           <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 18, padding: "18px 16px", marginBottom: 14, textAlign: "center" }}>
-            <p style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", margin: "0 0 4px 0", fontFamily: "sans-serif" }}>👋 ¡Bienvenido!</p>
-            <p style={{ color: "#aaa", fontSize: 12, margin: 0, fontFamily: "sans-serif" }}>Estudia tu primera tarjeta para empezar a ver tu progreso aquí</p>
+            <p style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", margin: "0 0 4px 0", fontFamily: "sans-serif" }}>{t("bienvenido_title", lang)}</p>
+            <p style={{ color: "#aaa", fontSize: 12, margin: 0, fontFamily: "sans-serif" }}>{t("bienvenido_hint", lang)}</p>
           </div>
         )}
 
@@ -1124,28 +1375,28 @@ function App() {
         }}>
           {dueCount > 0 ? (
             <>
-              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, margin: "0 0 2px 0", fontFamily: "sans-serif" }}>📅 Repaso de hoy</p>
+              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, margin: "0 0 2px 0", fontFamily: "sans-serif" }}>{t("repaso_hoy_title", lang)}</p>
               <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, margin: "0 0 8px 0", fontFamily: "sans-serif" }}>
-                El sistema elige qué se te va a olvidar pronto, de todas tus unidades
+                {t("repaso_hoy_hint", lang)}
               </p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <span style={{ color: "white", fontSize: 22, fontWeight: "bold", fontFamily: "sans-serif" }}>{dueCount} tarjetas</span>
+                  <span style={{ color: "white", fontSize: 22, fontWeight: "bold", fontFamily: "sans-serif" }}>{dueCount} {t("tarjetas_suffix", lang)}</span>
                   <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, marginTop: 2, fontFamily: "sans-serif" }}>
-                    {[newDueCount > 0 && `🆕 ${newDueCount} nuevas`, reviewDueCount > 0 && `🔁 ${reviewDueCount} repaso`].filter(Boolean).join(" · ")}
+                    {[newDueCount > 0 && `🆕 ${newDueCount} ${t("nuevas_suffix", lang)}`, reviewDueCount > 0 && `🔁 ${reviewDueCount} ${t("repaso_suffix", lang)}`].filter(Boolean).join(" · ")}
                   </div>
                 </div>
                 <button onClick={startReviewToday} style={{
                   background: "white", color: "#FF6B35", border: "none", borderRadius: 12,
                   padding: "10px 20px", fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "sans-serif"
                 }}>
-                  Repasar →
+                  {t("repasar_btn", lang)}
                 </button>
               </div>
             </>
           ) : (
             <p style={{ color: "#4CAF50", fontSize: 14, margin: 0, fontFamily: "sans-serif", textAlign: "center" }}>
-              🎉 ¡Ya repasaste todo por hoy! Vuelve mañana.
+              {t("repaso_completo", lang)}
             </p>
           )}
         </div>
@@ -1157,12 +1408,12 @@ function App() {
           color: "white", fontSize: 17, fontWeight: "bold", cursor: selectedUnits.length === 0 ? "not-allowed" : "pointer",
           fontFamily: "sans-serif", letterSpacing: 0.5, boxShadow: "0 4px 20px rgba(255,107,53,0.35)"
         }}>
-          📚 Flashcards · {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} tarjetas
+          {t("flashcards_btn", lang)} · {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_suffix", lang)}
         </button>
         <p style={{ textAlign: "center", color: "#666", fontSize: 11, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>
           {hasHistory
-            ? `${studyDir === "es→zh" ? "ES→中" : "中→ES"} · ${selectedUnits.length} unidades seleccionadas · cambiar en Opciones`
-            : "Tú eliges el tema: repasa todas las tarjetas de tus unidades seleccionadas"}
+            ? `${studyDir === "es→zh" ? t("dir_short_prompt_zh", lang) : t("dir_short_zh_prompt", lang)} · ${selectedUnits.length} ${t("cambiar_en_opciones", lang)}`
+            : t("home_subtitle_welcome", lang)}
         </p>
 
         {/* Modos secundarios en grilla 2x2 — menos scroll, se ve más panel que lista */}
@@ -1174,8 +1425,8 @@ function App() {
             display: "flex", flexDirection: "column", alignItems: "center", gap: 4
           }}>
             <span style={{ fontSize: 22 }}>✏️</span>
-            <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>Construir frases</span>
-            <span style={{ fontSize: 11, opacity: 0.85 }}>{buildableCards.length} disponibles</span>
+            <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>{t("construir_frases", lang)}</span>
+            <span style={{ fontSize: 11, opacity: 0.85 }}>{buildableCards.length} {t("disponibles_suffix", lang)}</span>
           </button>
 
           <button onClick={() => setMode("patterns")} style={{
@@ -1185,7 +1436,7 @@ function App() {
             display: "flex", flexDirection: "column", alignItems: "center", gap: 4
           }}>
             <span style={{ fontSize: 22 }}>📐</span>
-            <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>Patrones gramaticales</span>
+            <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>{t("patrones_gramaticales", lang)}</span>
             <span style={{ fontSize: 11, opacity: 0.85 }}>{PATTERN_CATEGORIES.reduce((sum, c) => sum + categoryCards(c).length, 0)}</span>
           </button>
 
@@ -1194,11 +1445,11 @@ function App() {
             background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
             cursor: "pointer", fontFamily: "sans-serif"
           }}>
-            🔀 Sesión mixta · repaso + escritura intercalados
+            {t("sesion_mixta", lang)}
           </button>
         </div>
       </div>
-      <TabBar activeMode={mode} setMode={setMode} />
+      <TabBar activeMode={mode} setMode={setMode} lang={lang} />
     </div>
   );
 
@@ -1207,17 +1458,39 @@ function App() {
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
       <div style={{ maxWidth: 500, width: "100%" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", fontFamily: "sans-serif" }}>⚙️ Opciones</span>
+          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", fontFamily: "sans-serif" }}>{t("opciones_title", lang)}</span>
+        </div>
+
+        {/* Idioma */}
+        <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
+          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>{t("idioma_title", lang)}</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[
+              { v: "es", label: "🇲🇽 Español" },
+              { v: "en", label: "🇺🇸 English" },
+              { v: "fr", label: "🇫🇷 Français" },
+            ].map(l => (
+              <button key={l.v} onClick={() => setLang(l.v)} style={{
+                flex: 1, padding: "10px 0", borderRadius: 10, border: "2px solid",
+                borderColor: lang === l.v ? "#FF6B35" : "rgba(255,255,255,0.2)",
+                background: lang === l.v ? "rgba(255,107,53,0.2)" : "transparent",
+                color: lang === l.v ? "#FF9D3D" : "#aaa",
+                cursor: "pointer", fontFamily: "sans-serif", fontSize: 13, fontWeight: lang === l.v ? "bold" : "normal"
+              }}>
+                {l.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Direction */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>Dirección de estudio</p>
+          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>{t("direccion_title", lang)}</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
-              { v: "es→zh", label: "🇲🇽 → 🇨🇳 Español a Chino" },
-              { v: "zh→es", label: "🇨🇳 → 🇲🇽 Chino a Español" },
-              { v: "listen", label: "🔊 Solo audio (producción)" },
+              { v: "es→zh", key: "dir_prompt_zh" },
+              { v: "zh→es", key: "dir_zh_prompt" },
+              { v: "listen", key: "dir_listen" },
             ].map(d => (
               <button key={d.v} onClick={() => setStudyDir(d.v)} style={{
                 flex: "1 1 30%", padding: "10px 4px", borderRadius: 10, border: "2px solid",
@@ -1226,37 +1499,37 @@ function App() {
                 color: studyDir === d.v ? "#FF9D3D" : "#aaa",
                 cursor: "pointer", fontFamily: "sans-serif", fontSize: 12, fontWeight: studyDir === d.v ? "bold" : "normal"
               }}>
-                {d.label}
+                {t(d.key, lang)}
               </button>
             ))}
           </div>
           <p style={{ color: "#888", fontSize: 11, margin: "8px 0 0 0", fontFamily: "sans-serif" }}>
-            "Solo audio" te reta a recordar el pinyin y el significado antes de revelar — sin ver el carácter primero.
+            {t("dir_listen_hint", lang)}
           </p>
         </div>
 
         {/* Toggles */}
         {[
-          { label: "🔊 Reproducir audio al revelar", val: autoPlay, set: setAutoPlay },
-          { label: "拼 Mostrar pinyin al revelar", val: showPinyin, set: setShowPinyin },
-        ].map(t => (
-          <div key={t.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "12px 16px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "#FFD09B", fontSize: 13, fontFamily: "sans-serif" }}>{t.label}</span>
-            <div onClick={() => t.set(p => !p)} style={{
-              width: 44, height: 24, borderRadius: 12, background: t.val ? "#FF6B35" : "#555",
+          { key: "toggle_audio", val: autoPlay, set: setAutoPlay },
+          { key: "toggle_pinyin", val: showPinyin, set: setShowPinyin },
+        ].map(toggle => (
+          <div key={toggle.key} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "12px 16px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ color: "#FFD09B", fontSize: 13, fontFamily: "sans-serif" }}>{t(toggle.key, lang)}</span>
+            <div onClick={() => toggle.set(p => !p)} style={{
+              width: 44, height: 24, borderRadius: 12, background: toggle.val ? "#FF6B35" : "#555",
               cursor: "pointer", position: "relative", transition: "background 0.3s"
             }}>
               <div style={{
                 width: 20, height: 20, borderRadius: "50%", background: "white",
-                position: "absolute", top: 2, left: t.val ? 22 : 2, transition: "left 0.3s"
+                position: "absolute", top: 2, left: toggle.val ? 22 : 2, transition: "left 0.3s"
               }} />
             </div>
           </div>
         ))}
         {/* Límite diario de repaso */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 4px 0", fontFamily: "sans-serif" }}>Límite diario de repaso</p>
-          <p style={{ color: "#888", fontSize: 11, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>Evita repasos interminables en un solo día</p>
+          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 4px 0", fontFamily: "sans-serif" }}>{t("limite_diario_title", lang)}</p>
+          <p style={{ color: "#888", fontSize: 11, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>{t("limite_diario_hint", lang)}</p>
           <div style={{ display: "flex", gap: 8 }}>
             {[0, 20, 40, 60].map(n => (
               <button key={n} onClick={() => setDailyCap(n)} style={{
@@ -1266,7 +1539,7 @@ function App() {
                 color: dailyCap === n ? "#FF9D3D" : "#aaa",
                 cursor: "pointer", fontFamily: "sans-serif", fontSize: 13, fontWeight: dailyCap === n ? "bold" : "normal"
               }}>
-                {n === 0 ? "Sin límite" : n}
+                {n === 0 ? t("sin_limite", lang) : n}
               </button>
             ))}
           </div>
@@ -1276,15 +1549,15 @@ function App() {
         {/* Unit selector con % de dominio */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <p style={{ color: "#FFD09B", fontSize: 13, margin: 0, fontFamily: "sans-serif" }}>Seleccionar unidades</p>
+            <p style={{ color: "#FFD09B", fontSize: 13, margin: 0, fontFamily: "sans-serif" }}>{t("seleccionar_unidades", lang)}</p>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setSelectedUnits([...units])} style={{ color: "#FF9D3D", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: "sans-serif" }}>Todas</button>
-              <button onClick={() => setSelectedUnits([])} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: "sans-serif" }}>Ninguna</button>
+              <button onClick={() => setSelectedUnits([...units])} style={{ color: "#FF9D3D", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: "sans-serif" }}>{t("todas", lang)}</button>
+              <button onClick={() => setSelectedUnits([])} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: "sans-serif" }}>{t("ninguna", lang)}</button>
             </div>
           </div>
 
           {/* Book 1 - Textbook units 1-10 */}
-          <p style={{ color: "#FF9D3D", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>📙 LIBRO 1 — Unidades</p>
+          <p style={{ color: "#FF9D3D", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>{t("libro1_unidades", lang)}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginBottom: 12 }}>
             {units.filter(u => bookInfo(u)?.book === 1).map(u => {
               const uc = UNIT_COLORS[u];
@@ -1306,7 +1579,7 @@ function App() {
           </div>
 
           {/* Book 2 */}
-          <p style={{ color: "#00838F", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>📗 LIBRO 2</p>
+          <p style={{ color: "#00838F", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>{t("libro2", lang)}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginBottom: 12 }}>
             {units.filter(u => bookInfo(u)?.book === 2).map(u => {
               const uc = UNIT_COLORS[u];
@@ -1328,7 +1601,7 @@ function App() {
           </div>
 
           {/* Book 3 */}
-          <p style={{ color: "#0277BD", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>📘 LIBRO 3</p>
+          <p style={{ color: "#0277BD", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>{t("libro3", lang)}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
             {units.filter(u => bookInfo(u)?.book === 3).map(u => {
               const uc = UNIT_COLORS[u];
@@ -1350,34 +1623,34 @@ function App() {
           </div>
 
           <p style={{ color: "#888", fontSize: 12, margin: "10px 0 0 0", fontFamily: "sans-serif", textAlign: "center" }}>
-            {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} tarjetas seleccionadas
+            {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_seleccionadas", lang)}
           </p>
         </div>
 
         <p onClick={resetProgress} style={{ textAlign: "center", color: "#555", fontSize: 11, marginTop: 8, cursor: "pointer", fontFamily: "sans-serif", textDecoration: "underline" }}>
-          Reiniciar progreso guardado
+          {t("reiniciar_progreso", lang)}
         </p>
       </div>
-      <TabBar activeMode={mode} setMode={setMode} />
+      <TabBar activeMode={mode} setMode={setMode} lang={lang} />
     </div>
   );
 
   if (mode === "results") return (
     <ResultsScreen
-      emoji="🎉" title="¡Ronda completada!" titleColor="#FF9D3D"
-      subtitle={`${deck.length} tarjetas estudiadas`}
+      emoji="🎉" title={t("ronda_completada", lang)} titleColor="#FF9D3D"
+      subtitle={`${deck.length} ${t("tarjetas_estudiadas", lang)}`}
       stats={[
-        { label: "✅ Las sé", count: knowCount, color: "#4CAF50" },
-        { label: "🤔 Casi", count: almostCount, color: "#FF9D3D" },
-        { label: "❌ Repasar", count: dontCount, color: "#F44336" },
+        { label: t("stat_las_se", lang), count: knowCount, color: "#4CAF50" },
+        { label: t("stat_casi", lang), count: almostCount, color: "#FF9D3D" },
+        { label: t("stat_repasar", lang), count: dontCount, color: "#F44336" },
       ]}
       actions={[
         dueCount > 0 && {
-          label: `📅 Seguir con el repaso de hoy (${dueCount} pendientes)`, onClick: startReviewToday,
+          label: `${t("seguir_repaso_hoy", lang)} (${dueCount} ${t("pendientes_suffix", lang)})`, onClick: startReviewToday,
           background: "linear-gradient(135deg, #FF6B35, #FF9D3D)", color: "white", fontSize: 15, bold: true,
         },
         {
-          label: "🔄 Repasar las que me fallaron",
+          label: t("repasar_fallidas", lang),
           onClick: () => {
             const dontKnow = deck.filter(c => ratings[c.id] === RATING.dontKnow || ratings[c.id] === RATING.almost);
             if (dontKnow.length === 0) { startStudy(); return; }
@@ -1388,9 +1661,9 @@ function App() {
           background: dueCount > 0 ? "transparent" : "linear-gradient(135deg, #FF6B35, #FF9D3D)",
           color: dueCount > 0 ? "#FF9D3D" : "white", fontSize: 15, bold: true,
         },
-        { label: "✏️ Construir frases con estas unidades", onClick: startBuild, disabled: buildableCards.length === 0, border: "2px solid rgba(0,131,143,0.4)", color: "#4DD0E1", fontSize: 14 },
-        { label: "🔀 Nueva ronda completa", onClick: () => (lastDeckKind === "vocab" ? startVocab() : startStudy()), color: "#999", fontSize: 13 },
-        { label: "← Menú principal", onClick: () => setMode("menu"), color: "#888", fontSize: 14 },
+        { label: t("construir_con_unidades", lang), onClick: startBuild, disabled: buildableCards.length === 0, border: "2px solid rgba(0,131,143,0.4)", color: "#4DD0E1", fontSize: 14 },
+        { label: t("nueva_ronda", lang), onClick: () => (lastDeckKind === "vocab" ? startVocab() : startStudy()), color: "#999", fontSize: 13 },
+        { label: t("menu_principal", lang), onClick: () => setMode("menu"), color: "#888", fontSize: 14 },
       ]}
     />
   );
@@ -1401,13 +1674,13 @@ function App() {
       <div style={{ maxWidth: 480, width: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
           <span style={{ flex: 1 }} />
-          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", textAlign: "center" }}>📐 Patrones gramaticales</span>
+          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", textAlign: "center" }}>{t("patrones_title", lang)}</span>
           <span style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
             <SettingsGearButton setMode={setMode} />
           </span>
         </div>
         <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
-          Las estructuras se repiten en varias unidades — están agrupadas por tipo y ordenadas por la unidad donde aparecen, dentro de tus unidades seleccionadas.
+          {t("patrones_desc", lang)}
         </p>
 
         {PATTERN_CATEGORIES.map(cat => {
@@ -1422,7 +1695,7 @@ function App() {
             }}>
               <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 24 }}>{cat.icon}</span>
-                <span style={{ color: "white", fontSize: 15, fontWeight: "bold" }}>{cat.label}</span>
+                <span style={{ color: "white", fontSize: 15, fontWeight: "bold" }}>{categoryLabel(cat, lang)}</span>
               </span>
               <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
                 <span style={{ color: count > 0 ? cat.color : "#666", fontSize: 13, fontWeight: "bold" }}>{count} →</span>
@@ -1432,7 +1705,7 @@ function App() {
           );
         })}
       </div>
-      <TabBar activeMode={mode} setMode={setMode} />
+      <TabBar activeMode={mode} setMode={setMode} lang={lang} />
     </div>
   );
 
@@ -1444,14 +1717,14 @@ function App() {
       <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <button onClick={() => setMode("patterns")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Categorías</button>
-            <span style={{ color: cat.color, fontSize: 13, fontWeight: "bold" }}>{cards.length} patrones</span>
+            <button onClick={() => setMode("patterns")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("categorias_back", lang)}</button>
+            <span style={{ color: cat.color, fontSize: 13, fontWeight: "bold" }}>{cards.length} {t("patrones_suffix", lang)}</span>
           </div>
-          <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 20px 0" }}>{cat.icon} {cat.label}</h2>
+          <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 20px 0" }}>{cat.icon} {categoryLabel(cat, lang)}</h2>
 
           {cards.length === 0 && (
             <p style={{ color: "#888", fontSize: 13, textAlign: "center", lineHeight: 1.5, margin: "0 0 20px 0" }}>
-              Todavía no has seleccionado ninguna unidad con este patrón — elegí más unidades en Opciones para verlo aquí.
+              {t("pattern_empty", lang)}
             </p>
           )}
 
@@ -1463,18 +1736,18 @@ function App() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                 <div>
                   <span style={{ display: "inline-block", color: cat.color, fontSize: 10, fontWeight: "bold", background: `${cat.color}18`, borderRadius: 20, padding: "2px 8px", marginBottom: 6 }}>
-                    {c.unitName}
+                    {displayUnitName(c, lang)}
                   </span>
                   <p style={{ color: "white", fontSize: 17, fontWeight: "bold", margin: "0 0 2px 0" }}>{c.zh}</p>
                   {showPinyin && <p style={{ fontSize: 12, fontStyle: "italic", margin: "0 0 6px 0", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(c.py, true)}</p>}
                 </div>
                 <SpeakButton text={c.zh.replace(/[❌✅]/g, "")} speak={speak} speaking={speaking} color={cat.color} />
               </div>
-              <p style={{ color: "#ccc", fontSize: 13, margin: "0 0 8px 0", lineHeight: 1.4 }}>{c.es}</p>
+              <p style={{ color: "#ccc", fontSize: 13, margin: "0 0 8px 0", lineHeight: 1.4 }}>{cardText(c, "es", lang)}</p>
               <div style={{ background: `${cat.color}12`, borderRadius: 10, padding: "8px 12px" }}>
                 <p style={{ color: cat.color, fontSize: 13, margin: "0 0 2px 0" }}>{c.exZh}</p>
                 {showPinyin && <p style={{ fontSize: 11, margin: "0 0 2px 0", fontStyle: "italic", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(c.exPy, true)}</p>}
-                <p style={{ color: "#aaa", fontSize: 12, margin: 0 }}>{c.exEs}</p>
+                <p style={{ color: "#aaa", fontSize: 12, margin: 0 }}>{cardText(c, "exEs", lang)}</p>
               </div>
             </div>
           ))}
@@ -1484,7 +1757,7 @@ function App() {
             background: cards.length === 0 ? "#444" : `linear-gradient(135deg, ${cat.color}, ${cat.color}cc)`, color: "white",
             fontSize: 15, fontWeight: "bold", cursor: cards.length === 0 ? "not-allowed" : "pointer"
           }}>
-            🎯 Practicar estos patrones
+            {t("practicar_patrones", lang)}
           </button>
         </div>
       </div>
@@ -1495,34 +1768,34 @@ function App() {
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 52, marginBottom: 16 }}>✏️</div>
-        <h2 style={{ color: "#4DD0E1", fontSize: 24, marginBottom: 4 }}>¡Ronda de frases completada!</h2>
-        <p style={{ color: "#FFD09B", marginBottom: 32, fontSize: 14 }}>{buildDeck.length} frases construidas</p>
+        <h2 style={{ color: "#4DD0E1", fontSize: 24, marginBottom: 4 }}>{t("ronda_frases_completada", lang)}</h2>
+        <p style={{ color: "#FFD09B", marginBottom: 32, fontSize: 14 }}>{buildDeck.length} {t("frases_construidas", lang)}</p>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32 }}>
           <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 8px" }}>
             <div style={{ fontSize: 28, fontWeight: "bold", color: "#4CAF50" }}>{buildStats.correct}</div>
-            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>✅ A la primera</div>
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>{t("a_la_primera", lang)}</div>
           </div>
           <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 8px" }}>
             <div style={{ fontSize: 28, fontWeight: "bold", color: "#F44336" }}>{buildStats.wrong}</div>
-            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>❌ Con errores</div>
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>{t("con_errores", lang)}</div>
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <button onClick={startBuild} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #00838F, #4DD0E1)", color: "white", fontSize: 15, fontWeight: "bold", cursor: "pointer" }}>
-            🔀 Otra ronda
+            {t("otra_ronda", lang)}
           </button>
           <button onClick={startStudy} style={{ padding: "14px 0", borderRadius: 14, border: "2px solid rgba(255,107,53,0.4)", background: "transparent", color: "#FF9D3D", fontSize: 14, cursor: "pointer" }}>
-            📚 Repasar como flashcards
+            {t("repasar_flashcards", lang)}
           </button>
           {dueCount > 0 && (
             <button onClick={startReviewToday} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#999", fontSize: 13, cursor: "pointer" }}>
-              📅 Tienes {dueCount} pendientes de repaso hoy
+              {tn("tienes_pendientes_hoy", lang, dueCount)}
             </button>
           )}
           <button onClick={() => setMode("menu")} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#888", fontSize: 14, cursor: "pointer" }}>
-            ← Menú principal
+            {t("menu_principal", lang)}
           </button>
         </div>
       </div>
@@ -1531,13 +1804,13 @@ function App() {
 
   // Tab: Construir — elegir nivel y empezar
   if (mode === "buildHub") return (
-    <HubScreen title="✏️ Construir frases" titleColor="#4DD0E1" mode={mode} setMode={setMode}
-      description="Arma la frase en chino con las fichas, o escríbela de memoria en 听写. Elige el nivel:">
+    <HubScreen title={t("construir_frases_title", lang)} titleColor="#4DD0E1" mode={mode} setMode={setMode} lang={lang}
+      description={t("construir_desc", lang)}>
       <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 12, marginBottom: 14 }}>
         <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
           {[
-            { v: "easy", label: "🟢 Fácil" },
-            { v: "medium", label: "🟡 Medio" },
+            { v: "easy", key: "nivel_facil" },
+            { v: "medium", key: "nivel_medio" },
             { v: "hard", label: "🔴 听写" },
           ].map(lv => (
             <button key={lv.v} onClick={() => setBuilderLevel(lv.v)} style={{
@@ -1546,7 +1819,7 @@ function App() {
               color: builderLevel === lv.v ? "#4DD0E1" : "#888", fontSize: 11, fontWeight: builderLevel === lv.v ? "bold" : "normal",
               cursor: "pointer", fontFamily: "sans-serif"
             }}>
-              {lv.label}
+              {lv.key ? t(lv.key, lang) : lv.label}
             </button>
           ))}
         </div>
@@ -1556,7 +1829,7 @@ function App() {
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: buildableCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
         }}>
-          ✏️ Comenzar · {buildableCards.length} disponibles
+          ✏️ {t("comenzar", lang)} · {buildableCards.length} {t("disponibles_suffix", lang)}
         </button>
       </div>
     </HubScreen>
@@ -1564,16 +1837,16 @@ function App() {
 
   // Tab: Escritura — practicar el orden de trazos de los caracteres
   if (mode === "writingHub") return (
-    <HubScreen title="🖌️ Escritura" titleColor="#C6501F" mode={mode} setMode={setMode}>
+    <HubScreen title={t("escritura_title", lang)} titleColor="#C6501F" mode={mode} setMode={setMode} lang={lang}>
       <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 12, lineHeight: 1.5 }}>
-        Practica el orden de trazos de los caracteres de tus unidades seleccionadas, uno por uno.
+        {t("escritura_desc", lang)}
       </p>
 
       <button onClick={() => setMode("settings")} style={{
         display: "block", margin: "0 auto 20px", background: "none", border: "none",
         color: "#C6501F", fontSize: 12, cursor: "pointer", textDecoration: "underline"
       }}>
-        {selectedUnits.length} unidades seleccionadas · cambiar en Opciones
+        {selectedUnits.length} {t("cambiar_en_opciones", lang)}
       </button>
 
       {writeDueChars.length > 0 && (
@@ -1582,7 +1855,7 @@ function App() {
           padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
           background: "linear-gradient(135deg, #C6501F, #FF9D3D)", color: "white", cursor: "pointer", fontFamily: "sans-serif"
         }}>
-          <span style={{ fontSize: 13, fontWeight: "bold" }}>📅 Repasar pendientes de hoy</span>
+          <span style={{ fontSize: 13, fontWeight: "bold" }}>{t("repasar_pendientes_hoy", lang)}</span>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{writeDueChars.length} →</span>
         </button>
       )}
@@ -1595,12 +1868,12 @@ function App() {
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: writableChars.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
         }}>
-          🖌️ Comenzar · {writableChars.length} caracteres
+          🖌️ {t("comenzar", lang)} · {writableChars.length} {t("caracteres_suffix", lang)}
         </button>
       </div>
       {writableChars.length === 0 && (
         <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
-          Selecciona unidades en Opciones para practicar sus caracteres.
+          {t("selecciona_unidades_chars", lang)}
         </p>
       )}
 
@@ -1609,22 +1882,22 @@ function App() {
         border: "1px solid rgba(255,255,255,0.15)", background: "none",
         color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: "sans-serif"
       }}>
-        📊 Ver qué caracteres domino
+        {t("ver_que_caracteres_domino", lang)}
       </button>
     </HubScreen>
   );
 
   // Tab: Vocabulario — solo los términos, con su ejemplo como contexto
   if (mode === "vocabHub") return (
-    <HubScreen title="🔤 Vocabulario" titleColor="#00ACC1" mode={mode} setMode={setMode}
-      description="Estudia solo los términos de tus unidades seleccionadas — carácter, pinyin y significado, con una frase de ejemplo.">
+    <HubScreen title={t("vocab_title", lang)} titleColor="#00ACC1" mode={mode} setMode={setMode} lang={lang}
+      description={t("vocab_desc", lang)}>
       {vocabDueCards.length > 0 && (
         <button onClick={() => startVocab(true)} style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
           background: "linear-gradient(135deg, #00ACC1, #4DD0E1)", color: "white", cursor: "pointer", fontFamily: "sans-serif"
         }}>
-          <span style={{ fontSize: 13, fontWeight: "bold" }}>📅 Repasar pendientes de hoy</span>
+          <span style={{ fontSize: 13, fontWeight: "bold" }}>{t("repasar_pendientes_hoy", lang)}</span>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{vocabDueCards.length} →</span>
         </button>
       )}
@@ -1635,12 +1908,12 @@ function App() {
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: vocabCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
         }}>
-          🔤 Comenzar · {vocabCards.length} términos
+          🔤 {t("comenzar", lang)} · {vocabCards.length} {t("terminos_suffix", lang)}
         </button>
       </div>
       {vocabCards.length === 0 && (
         <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
-          Todavía no hay vocabulario propio para las unidades seleccionadas. Prueba con unidades 13 a 27 en Opciones.
+          {t("vocab_empty", lang)}
         </p>
       )}
 
@@ -1649,7 +1922,7 @@ function App() {
         border: "1px solid rgba(255,255,255,0.15)", background: "none",
         color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: "sans-serif"
       }}>
-        📊 Ver qué palabras domino
+        {t("ver_que_palabras_domino", lang)}
       </button>
     </HubScreen>
   );
@@ -1660,8 +1933,8 @@ function App() {
   if (mode === "mastery") {
     const isVocab = masteryKind === "vocab";
     const items = isVocab
-      ? vocabCards.map(c => ({ id: c.id, zh: c.zh, py: c.py, es: c.es, status: statusFor(c.id, progress) }))
-      : writableChars.map(ch => ({ id: ch, zh: ch, py: CHAR_PINYIN[ch] || "", es: "", status: statusFor(ch, charProgress) }));
+      ? vocabCards.map(c => ({ id: c.id, zh: c.zh, py: c.py, text: cardText(c, "es", lang), status: statusFor(c.id, progress) }))
+      : writableChars.map(ch => ({ id: ch, zh: ch, py: CHAR_PINYIN[ch] || "", text: "", status: statusFor(ch, charProgress) }));
     const counts = {
       all: items.length,
       mastered: items.filter(i => i.status === "mastered").length,
@@ -1669,37 +1942,37 @@ function App() {
       new: items.filter(i => i.status === "new").length,
     };
     const filtered = masteryFilter === "all" ? items : items.filter(i => i.status === masteryFilter);
-    const STATUS_LABELS = { mastered: "⭐ Dominada", learning: "📈 Aprendiendo", new: "🆕 Nueva" };
+    const STATUS_LABELS = { mastered: t("status_dominada", lang), learning: t("status_aprendiendo", lang), new: t("status_nueva", lang) };
     const STATUS_COLORS = { mastered: "#4CAF50", learning: "#FF9D3D", new: "#888" };
 
     return (
       <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <button onClick={() => setMode(isVocab ? "vocabHub" : "writingHub")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
-            <span style={{ color: "#FFD09B", fontSize: 13 }}>{selectedUnits.length} unidades</span>
+            <button onClick={() => setMode(isVocab ? "vocabHub" : "writingHub")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
+            <span style={{ color: "#FFD09B", fontSize: 13 }}>{selectedUnits.length} {t("unidades_suffix", lang)}</span>
           </div>
-          <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 16px 0" }}>📊 {isVocab ? "Palabras" : "Caracteres"} que domino</h2>
+          <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 16px 0" }}>📊 {isVocab ? t("mastery_title_vocab", lang) : t("mastery_title_chars", lang)}</h2>
 
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <button onClick={() => { setMasteryKind("vocab"); setMasteryFilter("all"); }} style={{
               flex: 1, padding: "8px 0", borderRadius: 10, border: `2px solid ${isVocab ? "#00ACC1" : "rgba(255,255,255,0.15)"}`,
               background: isVocab ? "rgba(0,172,193,0.15)" : "transparent", color: isVocab ? "#4DD0E1" : "#888",
               fontSize: 13, fontWeight: isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: "sans-serif"
-            }}>🔤 Palabras</button>
+            }}>{t("tab_palabras", lang)}</button>
             <button onClick={() => { setMasteryKind("chars"); setMasteryFilter("all"); }} style={{
               flex: 1, padding: "8px 0", borderRadius: 10, border: `2px solid ${!isVocab ? "#C6501F" : "rgba(255,255,255,0.15)"}`,
               background: !isVocab ? "rgba(198,80,31,0.15)" : "transparent", color: !isVocab ? "#FF9D3D" : "#888",
               fontSize: 13, fontWeight: !isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: "sans-serif"
-            }}>🖌️ Caracteres</button>
+            }}>{t("tab_caracteres", lang)}</button>
           </div>
 
           <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
             {[
-              { key: "all", label: `Todas · ${counts.all}` },
-              { key: "mastered", label: `⭐ Dominadas · ${counts.mastered}` },
-              { key: "learning", label: `📈 Aprendiendo · ${counts.learning}` },
-              { key: "new", label: `🆕 Nuevas · ${counts.new}` },
+              { key: "all", label: `${t("filter_todas", lang)} · ${counts.all}` },
+              { key: "mastered", label: `${t("filter_dominadas", lang)} · ${counts.mastered}` },
+              { key: "learning", label: `${t("filter_aprendiendo", lang)} · ${counts.learning}` },
+              { key: "new", label: `${t("filter_nuevas", lang)} · ${counts.new}` },
             ].map(f => (
               <button key={f.key} onClick={() => setMasteryFilter(f.key)} style={{
                 padding: "6px 10px", borderRadius: 20, border: `1px solid ${masteryFilter === f.key ? "#FF9D3D" : "rgba(255,255,255,0.15)"}`,
@@ -1711,12 +1984,12 @@ function App() {
 
           {items.length === 0 && (
             <p style={{ color: "#888", fontSize: 13, textAlign: "center", marginTop: 20 }}>
-              Selecciona unidades en Opciones para ver {isVocab ? "su vocabulario" : "sus caracteres"} aquí.
+              {isVocab ? t("mastery_empty_select_vocab", lang) : t("mastery_empty_select_chars", lang)}
             </p>
           )}
           {items.length > 0 && filtered.length === 0 && (
             <p style={{ color: "#888", fontSize: 13, textAlign: "center", marginTop: 20 }}>
-              Nada en este filtro todavía.
+              {t("mastery_empty_filter", lang)}
             </p>
           )}
 
@@ -1729,7 +2002,7 @@ function App() {
               <div>
                 <div style={{ color: "white", fontSize: 18, fontWeight: "bold" }}>{item.zh}</div>
                 {item.py && <div style={{ color: TONE_COLORS_LIGHT[0], fontSize: 12, fontStyle: "italic" }}>{renderPinyinTone(item.py, false)}</div>}
-                {item.es && <div style={{ color: "#aaa", fontSize: 12 }}>{item.es}</div>}
+                {item.text && <div style={{ color: "#aaa", fontSize: 12 }}>{item.text}</div>}
               </div>
               <span style={{ color: STATUS_COLORS[item.status], fontSize: 11, fontWeight: "bold", whiteSpace: "nowrap" }}>{STATUS_LABELS[item.status]}</span>
             </div>
@@ -1746,7 +2019,7 @@ function App() {
       <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
+            <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
             <span style={{ color: "#FFD09B", fontSize: 13 }}>{writeIdx + 1} / {writeDeck.length}</span>
             <span style={{ color: "#C6501F", fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
               ✅ {writeStats.done}
@@ -1773,7 +2046,7 @@ function App() {
             )}
 
             {writeComplete && (
-              <p style={{ color: "#4CAF50", fontSize: 15, fontWeight: "bold", marginBottom: 12 }}>✅ ¡Completo!</p>
+              <p style={{ color: "#4CAF50", fontSize: 15, fontWeight: "bold", marginBottom: 12 }}>{t("completo", lang)}</p>
             )}
 
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -1800,7 +2073,7 @@ function App() {
                 padding: "10px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
                 background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
               }}>
-                🔄 Reiniciar
+                {t("reiniciar", lang)}
               </button>
               <button onClick={() => {
                 if (writeWriterRef.current) writeWriterRef.current.animateCharacter();
@@ -1808,14 +2081,14 @@ function App() {
                 padding: "10px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
                 background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
               }}>
-                💡 Pista
+                {t("pista", lang)}
               </button>
               <button onClick={() => setWriteShowPinyin(s => !s)} style={{
                 padding: "10px 16px", borderRadius: 14, border: `1px solid ${writeShowPinyin ? "rgba(255,157,61,0.5)" : "rgba(255,255,255,0.2)"}`,
                 background: writeShowPinyin ? "rgba(255,157,61,0.15)" : "rgba(255,255,255,0.06)",
                 color: writeShowPinyin ? "#FF9D3D" : "#aaa", fontSize: 13, cursor: "pointer"
               }}>
-                拼 Pinyin
+                {t("pinyin_toggle", lang)}
               </button>
             </div>
 
@@ -1824,7 +2097,7 @@ function App() {
               background: writeComplete ? "linear-gradient(135deg, #C6501F, #FF9D3D)" : "rgba(255,255,255,0.08)",
               color: writeComplete ? "white" : "#888", fontSize: 14, fontWeight: "bold", cursor: "pointer"
             }}>
-              {writeIdx + 1 >= writeDeck.length ? "Terminar" : "Siguiente →"}
+              {writeIdx + 1 >= writeDeck.length ? t("terminar", lang) : t("siguiente", lang)}
             </button>
           </div>
         </div>
@@ -1839,10 +2112,10 @@ function App() {
       <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
+            <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
             <span style={{ color: "#FFD09B", fontSize: 13 }}>{mixedIdx + 1} / {mixedQueue.length}</span>
             <span style={{ color: mixedColor.accent, fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
-              🔀 Sesión mixta
+              {t("sesion_mixta_badge", lang)}
             </span>
           </div>
 
@@ -1863,9 +2136,9 @@ function App() {
           }}>
             {!mixedFlipped ? (
               <>
-                <div style={{ fontSize: 22, color: "white", textAlign: "center", lineHeight: 1.4 }}>{mixedCard.es}</div>
+                <div style={{ fontSize: 22, color: "white", textAlign: "center", lineHeight: 1.4 }}>{cardText(mixedCard, "es", lang)}</div>
                 <div style={{ marginTop: 16, color: "#555", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-                  <span>👆</span> Toca para revelar
+                  <span>👆</span> {t("toca_revelar", lang)}
                 </div>
               </>
             ) : (
@@ -1873,8 +2146,8 @@ function App() {
                 {mixedCard.emoji && <div style={{ fontSize: 34, marginBottom: 4 }}>{mixedCard.emoji}</div>}
                 <div style={{ fontSize: 38, fontWeight: "bold", color: mixedColor.accent, marginBottom: 4, textAlign: "center" }}>{mixedCard.zh}</div>
                 {showPinyin && <div style={{ fontSize: 15, marginBottom: 6, color: TONE_COLORS_LIGHT[0] }}>{renderPinyinTone(mixedCard.py, false)}</div>}
-                <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{mixedCard.es}</div>
-                <SpeakButton text={mixedCard.zh} speak={speak} speaking={speaking} color={mixedColor.accent} variant="label" label="Escuchar de nuevo" error={speechError} />
+                <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{cardText(mixedCard, "es", lang)}</div>
+                <SpeakButton text={mixedCard.zh} speak={speak} speaking={speaking} color={mixedColor.accent} variant="label" label={t("escuchar_de_nuevo", lang)} error={speechError} />
               </>
             )}
           </div>
@@ -1882,22 +2155,22 @@ function App() {
           {mixedFlipped && (
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
               {[
-                { label: "❌ No la sé", value: RATING.dontKnow, color: "#F44336", bg: "rgba(244,67,54,0.15)" },
-                { label: "🤔 Casi", value: RATING.almost, color: "#FF9D3D", bg: "rgba(255,157,61,0.15)" },
-                { label: "✅ La sé", value: RATING.know, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
+                { key: "no_la_se", value: RATING.dontKnow, color: "#F44336", bg: "rgba(244,67,54,0.15)" },
+                { key: "casi", value: RATING.almost, color: "#FF9D3D", bg: "rgba(255,157,61,0.15)" },
+                { key: "la_se", value: RATING.know, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
               ].map(btn => (
                 <button key={btn.value} onClick={() => rateMixed(btn.value)} style={{
                   flex: 1, padding: "14px 4px", borderRadius: 14, border: `2px solid ${btn.color}66`,
                   background: btn.bg, color: btn.color, fontSize: 12, fontWeight: "bold", cursor: "pointer"
                 }}>
-                  {btn.label}
+                  {t(btn.key, lang)}
                 </button>
               ))}
             </div>
           )}
 
           <p style={{ textAlign: "center", color: "#666", fontSize: 11, marginTop: 20 }}>
-            Al calificar, si esta tarjeta tiene un carácter practicable pasarás a escribirlo antes de seguir
+            {t("mixed_hint", lang)}
           </p>
         </div>
       </div>
@@ -1921,10 +2194,10 @@ function App() {
 
           {/* Top bar */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
+            <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
             <span style={{ color: "#FFD09B", fontSize: 13 }}>{buildIdx + 1} / {buildDeck.length}</span>
             <span style={{ color: color2.accent, fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
-              {isHard ? "🔴 听写" : isMedium ? "🟡 Medio" : "🟢 Fácil"}
+              {isHard ? "🔴 听写" : isMedium ? t("nivel_medio", lang) : t("nivel_facil", lang)}
             </span>
           </div>
 
@@ -1938,7 +2211,7 @@ function App() {
             <p style={{ color: "#4DD0E1", fontSize: 11, margin: "0 0 8px 0", letterSpacing: 1 }}>
               {isHard ? "ESCRIBE ESTA FRASE EN CHINO" : "ARMA ESTA FRASE EN CHINO"}
             </p>
-            <p style={{ color: "white", fontSize: 18, margin: 0, lineHeight: 1.4 }}>{buildCard.es}</p>
+            <p style={{ color: "white", fontSize: 18, margin: 0, lineHeight: 1.4 }}>{cardText(buildCard, "es", lang)}</p>
           </div>
 
           {isHard ? (
@@ -2051,7 +2324,7 @@ function App() {
             <div style={{ background: `${color2.accent}15`, borderRadius: 14, padding: "12px 16px", marginBottom: 16, textAlign: "center" }}>
               <p style={{ fontSize: 22, color: color2.accent, fontWeight: "bold", margin: "0 0 4px 0" }}>{buildCard.zh}</p>
               {showPinyin && <p style={{ fontSize: 14, margin: "0 0 4px 0", fontStyle: "italic", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(buildCard.py, true)}</p>}
-              <p style={{ fontSize: 13, color: "#ccc", margin: 0 }}>{buildCard.es}</p>
+              <p style={{ fontSize: 13, color: "#ccc", margin: 0 }}>{cardText(buildCard, "es", lang)}</p>
             </div>
           )}
 
@@ -2096,10 +2369,10 @@ function App() {
 
         {/* Top bar */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>← Menú</button>
+          <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
           <span style={{ color: "#FFD09B", fontSize: 13 }}>{currentIdx + 1} / {deck.length}</span>
           <span style={{ color: color.accent, fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
-            {card.unit <= 10 || card.unit === 30 ? card.unitName : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : card.unitName; })()}
+            {card.unit <= 10 || card.unit === 30 ? displayUnitName(card, lang) : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : displayUnitName(card, lang); })()}
           </span>
         </div>
 
@@ -2139,7 +2412,7 @@ function App() {
               opacity: Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1),
               pointerEvents: "none"
             }}>
-              {dragX > 0 ? "✅ La sé" : "❌ No la sé"}
+              {dragX > 0 ? t("la_se", lang) : t("no_la_se", lang)}
             </span>
           )}
           {!flipped ? (
@@ -2149,32 +2422,32 @@ function App() {
                   background: `${color.accent}22`, border: `1px solid ${color.accent}55`, color: color.accent,
                   borderRadius: 20, padding: "3px 12px", fontSize: 11, fontWeight: "bold", marginBottom: 14
                 }}>
-                  📖 Ficha de referencia
+                  {t("ficha_referencia", lang)}
                 </span>
               )}
               {studyDir === "zh→es" && (
                 <>
                   <div style={{ fontSize: 42, fontWeight: "bold", color: "white", marginBottom: 12, textAlign: "center" }}>{card.zh}</div>
                   <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" error={speechError} />
-                  <FrontPinyinReveal pinyin={card.py} cardId={card.id} showPinyin={showPinyin} />
+                  <FrontPinyinReveal pinyin={card.py} cardId={card.id} showPinyin={showPinyin} lang={lang} />
                 </>
               )}
               {studyDir === "es→zh" && (
-                <div style={{ fontSize: 22, color: "white", textAlign: "center", lineHeight: 1.4 }}>{card.es}</div>
+                <div style={{ fontSize: 22, color: "white", textAlign: "center", lineHeight: 1.4 }}>{cardText(card, "es", lang)}</div>
               )}
               {studyDir === "listen" && (
                 isSpeakableZh(card.zh) ? (
                   <>
                     <div style={{ fontSize: 52, marginBottom: 10 }}>🔊</div>
-                    <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" label="Escuchar de nuevo" error={speechError} />
-                    <p style={{ color: "#888", fontSize: 12, textAlign: "center", margin: 0 }}>Recuerda el pinyin y el significado antes de revelar</p>
+                    <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" label={t("escuchar_de_nuevo", lang)} error={speechError} />
+                    <p style={{ color: "#888", fontSize: 12, textAlign: "center", margin: 0 }}>{t("listen_hint", lang)}</p>
                   </>
                 ) : (
-                  <p style={{ color: "#888", fontSize: 13, textAlign: "center", margin: 0 }}>Esta tarjeta no tiene audio disponible</p>
+                  <p style={{ color: "#888", fontSize: 13, textAlign: "center", margin: 0 }}>{t("sin_audio", lang)}</p>
                 )
               )}
               <div style={{ marginTop: 16, color: "#555", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-                <span>👆</span> {isReference ? "Toca para ver la explicación" : "Toca para revelar"}
+                <span>👆</span> {isReference ? t("toca_revelar_referencia", lang) : t("toca_revelar", lang)}
               </div>
             </>
           ) : (
@@ -2185,20 +2458,20 @@ function App() {
               <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{back_es}</div>
 
               {/* Speaker button on back */}
-              <SpeakButton text={card.zh} speak={speak} speaking={speaking} color={color.accent} variant="label" label="Escuchar de nuevo" error={speechError} />
+              <SpeakButton text={card.zh} speak={speak} speaking={speaking} color={color.accent} variant="label" label={t("escuchar_de_nuevo", lang)} error={speechError} />
 
               {lastDeckKind === "vocab" ? (
-                <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} />
+                <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} lang={lang} />
               ) : (
                 <>
                   <button onClick={(e) => { e.stopPropagation(); setShowExample(s => !s); }} style={{
                     background: "none", border: `1px solid ${color.accent}44`, borderRadius: 20, padding: "6px 14px",
                     color: color.accent, fontSize: 12, cursor: "pointer"
                   }}>
-                    {showExample ? "▲ Ocultar ejemplo" : "▼ Ver ejemplo"}
+                    {showExample ? t("ocultar_ejemplo", lang) : t("ver_ejemplo", lang)}
                   </button>
 
-                  {showExample && <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} />}
+                  {showExample && <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} lang={lang} />}
                 </>
               )}
             </>
@@ -2208,22 +2481,22 @@ function App() {
         {/* Rating buttons */}
         {flipped && (
           <p style={{ textAlign: "center", color: "#555", fontSize: 11, margin: "14px 0 0 0", fontFamily: "sans-serif" }}>
-            ↔ Desliza la tarjeta o usa los botones
+            {t("swipe_hint", lang)}
           </p>
         )}
         {flipped && (
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
             {[
-              { label: "❌ No la sé", value: RATING.dontKnow, color: "#F44336", bg: "rgba(244,67,54,0.15)" },
-              { label: "🤔 Casi", value: RATING.almost, color: "#FF9D3D", bg: "rgba(255,157,61,0.15)" },
-              { label: "✅ La sé", value: RATING.know, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
+              { key: "no_la_se", value: RATING.dontKnow, color: "#F44336", bg: "rgba(244,67,54,0.15)" },
+              { key: "casi", value: RATING.almost, color: "#FF9D3D", bg: "rgba(255,157,61,0.15)" },
+              { key: "la_se", value: RATING.know, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
             ].map(btn => (
               <button key={btn.value} onClick={() => rate(btn.value)} style={{
                 flex: 1, padding: "14px 4px", borderRadius: 14, border: `2px solid ${btn.color}66`,
                 background: btn.bg, color: btn.color, fontSize: 12, fontWeight: "bold",
                 cursor: "pointer", transition: "transform 0.1s"
               }}>
-                {btn.label}
+                {t(btn.key, lang)}
               </button>
             ))}
           </div>
@@ -2235,7 +2508,7 @@ function App() {
               flex: 1, padding: "14px 0", borderRadius: 14, border: "2px solid rgba(255,107,53,0.4)",
               background: "rgba(255,107,53,0.1)", color: "#FF9D3D", fontSize: 14, fontWeight: "bold", cursor: "pointer"
             }}>
-              {isReference ? "Ver explicación 📖" : "Revelar 👁"}
+              {isReference ? t("ver_explicacion", lang) : t("revelar", lang)}
             </button>
           </div>
         )}
