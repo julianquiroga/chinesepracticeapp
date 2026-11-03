@@ -154,6 +154,14 @@ const UI_STRINGS = {
   listen_hint: { es: "Recuerda el pinyin y el significado antes de revelar", en: "Recall the pinyin and meaning before revealing", fr: "Rappelez-vous le pinyin et le sens avant de révéler" },
   ver_ejemplo: { es: "▼ Ver ejemplo", en: "▼ View example", fr: "▼ Voir l'exemple" },
   ocultar_ejemplo: { es: "▲ Ocultar ejemplo", en: "▲ Hide example", fr: "▲ Masquer l'exemple" },
+  escuchar: { es: "Escuchar", en: "Listen", fr: "Écouter" },
+  reproduciendo: { es: "Reproduciendo...", en: "Playing...", fr: "Lecture en cours..." },
+  dominado: { es: "dominado", en: "mastered", fr: "maîtrisé" },
+  speech_error: {
+    es: "⚠️ No se pudo reproducir el audio. Revisá que tu teléfono tenga instalada la voz de chino (Ajustes → Accesibilidad/Idiomas → Texto a voz).",
+    en: "⚠️ Couldn't play the audio. Check that your phone has the Chinese voice installed (Settings → Accessibility/Languages → Text-to-speech).",
+    fr: "⚠️ Impossible de lire l'audio. Vérifiez que votre téléphone a la voix chinoise installée (Réglages → Accessibilité/Langues → Synthèse vocale).",
+  },
   escribe_frase: { es: "ESCRIBE ESTA FRASE EN CHINO", en: "WRITE THIS SENTENCE IN CHINESE", fr: "ÉCRIVEZ CETTE PHRASE EN CHINOIS" },
   arma_frase: { es: "ARMA ESTA FRASE EN CHINO", en: "BUILD THIS SENTENCE IN CHINESE", fr: "CONSTRUISEZ CETTE PHRASE EN CHINOIS" },
   dictado_placeholder: { es: "打字…（使用中文键盘）", en: "Type… (use a Chinese keyboard)", fr: "Tapez… (utilisez un clavier chinois)" },
@@ -349,7 +357,7 @@ function ExampleBox({ card, color, speak, speaking, showPinyin, lang }) {
           {card.exZh}
         </span>
         <SpeakButton text={card.exZh} speak={speak} speaking={speaking} color={color.accent}
-          style={{ background: speaking ? `${color.accent}33` : "transparent" }} />
+          style={{ background: speaking ? `${color.accent}33` : "transparent" }} lang={lang} />
       </div>
 
       {/* Pinyin reveal */}
@@ -623,7 +631,7 @@ const PATTERN_CATEGORIES = [
   { key: "clasificadores", icon: "🔢", label: "量词 · Measure words", color: "#F9A825", ids: [542,543,544,545,546,547,548,549,550,551,552,554,555,556,557,558,559,560,561,562,563,564,565,566,567] },
 ];
 
-function ProgressRing({ pct, size = 84, color = "#FF9D3D" }) {
+function ProgressRing({ pct, size = 84, color = "#FF9D3D", lang }) {
   const stroke = 8;
   const radius = (size - stroke) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -641,7 +649,7 @@ function ProgressRing({ pct, size = 84, color = "#FF9D3D" }) {
         display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column"
       }}>
         <span style={{ color: "white", fontSize: 20, fontWeight: "bold", fontFamily: "sans-serif" }}>{pct}%</span>
-        <span style={{ color: "#999", fontSize: 9, fontFamily: "sans-serif" }}>dominado</span>
+        <span style={{ color: "#999", fontSize: 9, fontFamily: "sans-serif" }}>{t("dominado", lang)}</span>
       </div>
     </div>
   );
@@ -725,12 +733,13 @@ function TabBar({ activeMode, setMode, lang }) {
 // variant: "icon" (pastilla chica, dentro de tarjetas/listas), "label" (pastilla
 // grande con texto "Escuchar"/"Reproduciendo...", color de la unidad) o "front"
 // (versión de la portada de la flashcard, con paleta naranja fija).
-function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", label = "Escuchar", error = false, style }) {
+function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", label, error = false, style, lang }) {
   if (!isSpeakableZh(text)) return null;
+  const resolvedLabel = label || t("escuchar", lang);
   const onClick = (e) => { if (e) e.stopPropagation(); speak(text); };
   const errorHint = error && (
     <p style={{ color: "#F44336", fontSize: 11, textAlign: "center", margin: "4px 0 0 0", maxWidth: 280, lineHeight: 1.4 }}>
-      ⚠️ No se pudo reproducir el audio. Revisá que tu teléfono tenga instalada la voz de chino (Ajustes → Accesibilidad/Idiomas → Texto a voz).
+      {t("speech_error", lang)}
     </p>
   );
   if (variant === "label") {
@@ -742,7 +751,7 @@ function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", 
           marginBottom: 10, transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
           ...style
         }}>
-          {speaking ? "🔊 Reproduciendo..." : `🔊 ${label}`}
+          {speaking ? `🔊 ${t("reproduciendo", lang)}` : `🔊 ${resolvedLabel}`}
         </button>
         {errorHint}
       </>
@@ -759,7 +768,7 @@ function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", 
           display: "flex", alignItems: "center", gap: 6,
           ...style
         }}>
-          {speaking ? "🔊 Reproduciendo..." : `🔊 ${label}`}
+          {speaking ? `🔊 ${t("reproduciendo", lang)}` : `🔊 ${resolvedLabel}`}
         </button>
         {errorHint}
       </>
@@ -1357,7 +1366,7 @@ function App() {
         {/* Racha + progreso general */}
         {hasHistory ? (
           <div style={{ display: "flex", alignItems: "center", gap: 16, background: "rgba(255,255,255,0.05)", borderRadius: 18, padding: 16, marginBottom: 14 }}>
-            <ProgressRing pct={masteredPct} />
+            <ProgressRing pct={masteredPct} lang={lang} />
             <div style={{ flex: 1 }}>
               {streak.current > 0 && (
                 <p style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", margin: "0 0 6px 0", fontFamily: "sans-serif" }}>
@@ -1752,7 +1761,7 @@ function App() {
                   <p style={{ color: "white", fontSize: 17, fontWeight: "bold", margin: "0 0 2px 0" }}>{c.zh}</p>
                   {showPinyin && <p style={{ fontSize: 12, fontStyle: "italic", margin: "0 0 6px 0", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(c.py, true)}</p>}
                 </div>
-                <SpeakButton text={c.zh.replace(/[❌✅]/g, "")} speak={speak} speaking={speaking} color={cat.color} />
+                <SpeakButton text={c.zh.replace(/[❌✅]/g, "")} speak={speak} speaking={speaking} color={cat.color} lang={lang} />
               </div>
               <p style={{ color: "#ccc", fontSize: 13, margin: "0 0 8px 0", lineHeight: 1.4 }}>{cardText(c, "es", lang)}</p>
               <div style={{ background: `${cat.color}12`, borderRadius: 10, padding: "8px 12px" }}>
@@ -2062,7 +2071,7 @@ function App() {
 
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
               <SpeakButton text={writeChar} speak={speak} speaking={speaking}
-                style={{ padding: "10px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", fontSize: 13 }} />
+                style={{ padding: "10px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", fontSize: 13 }} lang={lang} />
               <button onClick={() => {
                 if (writeWriterRef.current) {
                   setWriteComplete(false);
@@ -2158,7 +2167,7 @@ function App() {
                 <div style={{ fontSize: 38, fontWeight: "bold", color: mixedColor.accent, marginBottom: 4, textAlign: "center" }}>{mixedCard.zh}</div>
                 {showPinyin && <div style={{ fontSize: 15, marginBottom: 6, color: TONE_COLORS_LIGHT[0] }}>{renderPinyinTone(mixedCard.py, false)}</div>}
                 <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{cardText(mixedCard, "es", lang)}</div>
-                <SpeakButton text={mixedCard.zh} speak={speak} speaking={speaking} color={mixedColor.accent} variant="label" label={t("escuchar_de_nuevo", lang)} error={speechError} />
+                <SpeakButton text={mixedCard.zh} speak={speak} speaking={speaking} color={mixedColor.accent} variant="label" label={t("escuchar_de_nuevo", lang)} error={speechError} lang={lang} />
               </>
             )}
           </div>
@@ -2350,7 +2359,7 @@ function App() {
               </button>
             )}
             <SpeakButton text={buildCard.zh} speak={speak} speaking={speaking}
-              style={{ padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", fontSize: 13 }} />
+              style={{ padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", fontSize: 13 }} lang={lang} />
             {!showBuildAnswer && !resolved ? (
               <button onClick={() => setShowBuildAnswer(true)} style={{
                 flex: 1, padding: "12px 0", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
@@ -2439,7 +2448,7 @@ function App() {
               {studyDir === "zh→es" && (
                 <>
                   <div style={{ fontSize: 42, fontWeight: "bold", color: "white", marginBottom: 12, textAlign: "center" }}>{card.zh}</div>
-                  <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" error={speechError} />
+                  <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" error={speechError} lang={lang} />
                   <FrontPinyinReveal pinyin={card.py} cardId={card.id} showPinyin={showPinyin} lang={lang} />
                 </>
               )}
@@ -2450,7 +2459,7 @@ function App() {
                 isSpeakableZh(card.zh) ? (
                   <>
                     <div style={{ fontSize: 52, marginBottom: 10 }}>🔊</div>
-                    <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" label={t("escuchar_de_nuevo", lang)} error={speechError} />
+                    <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" label={t("escuchar_de_nuevo", lang)} error={speechError} lang={lang} />
                     <p style={{ color: "#888", fontSize: 12, textAlign: "center", margin: 0 }}>{t("listen_hint", lang)}</p>
                   </>
                 ) : (
@@ -2469,7 +2478,7 @@ function App() {
               <div style={{ fontSize: 18, color: "#333", marginBottom: 12, textAlign: "center" }}>{back_es}</div>
 
               {/* Speaker button on back */}
-              <SpeakButton text={card.zh} speak={speak} speaking={speaking} color={color.accent} variant="label" label={t("escuchar_de_nuevo", lang)} error={speechError} />
+              <SpeakButton text={card.zh} speak={speak} speaking={speaking} color={color.accent} variant="label" label={t("escuchar_de_nuevo", lang)} error={speechError} lang={lang} />
 
               {lastDeckKind === "vocab" ? (
                 <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} lang={lang} />
