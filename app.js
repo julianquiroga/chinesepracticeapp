@@ -1297,6 +1297,14 @@ function App() {
     }, 300);
   };
 
+  const prevCard = () => {
+    if (currentIdx === 0) return;
+    setCurrentIdx(i => i - 1);
+    setFlipped(false);
+    setShowExample(false);
+    setDragX(0);
+  };
+
   const SWIPE_THRESHOLD = 90;
   const onCardPointerDown = (e) => {
     if (!flipped || animating) return;
@@ -2506,6 +2514,14 @@ function App() {
         )}
         {flipped && (
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+            {currentIdx > 0 && (
+              <button onClick={prevCard} style={{
+                padding: "14px 10px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
+                background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 12, cursor: "pointer"
+              }}>
+                {t("anterior", lang)}
+              </button>
+            )}
             {[
               { key: "no_la_se", value: RATING.dontKnow, color: "#F44336", bg: "rgba(244,67,54,0.15)" },
               { key: "casi", value: RATING.almost, color: "#FF9D3D", bg: "rgba(255,157,61,0.15)" },
@@ -2524,6 +2540,14 @@ function App() {
 
         {!flipped && (
           <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            {currentIdx > 0 && (
+              <button onClick={prevCard} style={{
+                padding: "14px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
+                background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
+              }}>
+                {t("anterior", lang)}
+              </button>
+            )}
             <button onClick={() => setFlipped(true)} style={{
               flex: 1, padding: "14px 0", borderRadius: 14, border: "2px solid rgba(255,107,53,0.4)",
               background: "rgba(255,107,53,0.1)", color: "#FF9D3D", fontSize: 14, fontWeight: "bold", cursor: "pointer"
