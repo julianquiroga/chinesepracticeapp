@@ -35,12 +35,12 @@ const UI_STRINGS = {
   tab_palabras: { es: "🔤 Palabras", en: "🔤 Words", fr: "🔤 Mots" },
   tab_caracteres: { es: "🖌️ Caracteres", en: "🖌️ Characters", fr: "🖌️ Caractères" },
   filter_todas: { es: "Todas", en: "All", fr: "Toutes" },
-  filter_dominadas: { es: "⭐ Dominadas", en: "⭐ Mastered", fr: "⭐ Maîtrisés" },
-  filter_aprendiendo: { es: "📈 Aprendiendo", en: "📈 Learning", fr: "📈 En cours" },
-  filter_nuevas: { es: "🆕 Nuevas", en: "🆕 New", fr: "🆕 Nouveaux" },
-  status_dominada: { es: "⭐ Dominada", en: "⭐ Mastered", fr: "⭐ Maîtrisé" },
-  status_aprendiendo: { es: "📈 Aprendiendo", en: "📈 Learning", fr: "📈 En cours" },
-  status_nueva: { es: "🆕 Nueva", en: "🆕 New", fr: "🆕 Nouveau" },
+  filter_dominadas: { es: "Dominadas", en: "Mastered", fr: "Maîtrisés" },
+  filter_aprendiendo: { es: "Aprendiendo", en: "Learning", fr: "En cours" },
+  filter_nuevas: { es: "Nuevas", en: "New", fr: "Nouveaux" },
+  status_dominada: { es: "Dominada", en: "Mastered", fr: "Maîtrisé" },
+  status_aprendiendo: { es: "Aprendiendo", en: "Learning", fr: "En cours" },
+  status_nueva: { es: "Nueva", en: "New", fr: "Nouveau" },
   mastery_empty_select_vocab: { es: "Selecciona unidades en Opciones para ver su vocabulario aquí.", en: "Select units in Settings to see its vocabulary here.", fr: "Sélectionnez des unités dans Options pour voir son vocabulaire ici." },
   mastery_empty_select_chars: { es: "Selecciona unidades en Opciones para ver sus caracteres aquí.", en: "Select units in Settings to see its characters here.", fr: "Sélectionnez des unités dans Options pour voir ses caractères ici." },
   mastery_empty_filter: { es: "Nada en este filtro todavía.", en: "Nothing in this filter yet.", fr: "Rien dans ce filtre pour l'instant." },
@@ -157,8 +157,8 @@ const UI_STRINGS = {
   sesion_mixta_badge: { es: "🔀 Sesión mixta", en: "🔀 Mixed session", fr: "🔀 Session mixte" },
   mixed_hint: { es: "Al calificar, si esta tarjeta tiene un carácter practicable pasarás a escribirlo antes de seguir", en: "After rating, if this card has a practicable character you'll write it before continuing", fr: "Après la notation, si cette carte a un caractère pratiquable, vous l'écrirez avant de continuer" },
   swipe_hint: { es: "↔ Desliza la tarjeta o usa los botones", en: "↔ Swipe the card or use the buttons", fr: "↔ Faites glisser la carte ou utilisez les boutons" },
-  ver_explicacion: { es: "Ver explicación 📖", en: "View explanation 📖", fr: "Voir l'explication 📖" },
-  revelar: { es: "Revelar 👁", en: "Reveal 👁", fr: "Révéler 👁" },
+  ver_explicacion: { es: "Ver explicación", en: "View explanation", fr: "Voir l'explication" },
+  revelar: { es: "Revelar", en: "Reveal", fr: "Révéler" },
   toca_revelar_referencia: { es: "Toca para ver la explicación", en: "Tap to view the explanation", fr: "Touchez pour voir l'explication" },
   ficha_referencia: { es: "📖 Ficha de referencia", en: "📖 Reference card", fr: "📖 Fiche de référence" },
   listen_hint: { es: "Recuerda el pinyin y el significado antes de revelar", en: "Recall the pinyin and meaning before revealing", fr: "Rappelez-vous le pinyin et le sens avant de révéler" },
@@ -2095,7 +2095,7 @@ function App() {
     };
     const filtered = masteryFilter === "all" ? items : items.filter(i => i.status === masteryFilter);
     const STATUS_LABELS = { mastered: t("status_dominada", lang), learning: t("status_aprendiendo", lang), new: t("status_nueva", lang) };
-    const STATUS_COLORS = { mastered: "#4CAF50", learning: "#FF9D3D", new: "#888" };
+    const STATUS_COLORS = { mastered: "#66BB6A", learning: "#FFA726", new: TEXT_3 };
 
     return (
       <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: FONT_UI }}>
@@ -2122,15 +2122,15 @@ function App() {
           <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
             {[
               { key: "all", label: `${t("filter_todas", lang)} · ${counts.all}` },
-              { key: "mastered", label: `${t("filter_dominadas", lang)} · ${counts.mastered}` },
-              { key: "learning", label: `${t("filter_aprendiendo", lang)} · ${counts.learning}` },
-              { key: "new", label: `${t("filter_nuevas", lang)} · ${counts.new}` },
+              { key: "mastered", dot: STATUS_COLORS.mastered, label: `${t("filter_dominadas", lang)} · ${counts.mastered}` },
+              { key: "learning", dot: STATUS_COLORS.learning, label: `${t("filter_aprendiendo", lang)} · ${counts.learning}` },
+              { key: "new", dot: STATUS_COLORS.new, label: `${t("filter_nuevas", lang)} · ${counts.new}` },
             ].map(f => (
               <button key={f.key} onClick={() => setMasteryFilter(f.key)} style={{
-                padding: "6px 10px", borderRadius: 20, border: `1px solid ${masteryFilter === f.key ? "#FF9D3D" : "rgba(255,255,255,0.15)"}`,
+                minHeight: 34, padding: "6px 12px", borderRadius: 20, border: `1px solid ${masteryFilter === f.key ? "#FF9D3D" : "rgba(255,255,255,0.15)"}`,
                 background: masteryFilter === f.key ? "rgba(255,157,61,0.15)" : "transparent",
-                color: masteryFilter === f.key ? "#FF9D3D" : "#aaa", fontSize: 11, cursor: "pointer", fontFamily: FONT_UI
-              }}>{f.label}</button>
+                color: masteryFilter === f.key ? "#FF9D3D" : TEXT_2, fontSize: 12, cursor: "pointer", fontFamily: FONT_UI
+              }}><Lbl gap={6}>{f.dot && <LevelDot color={f.dot} />}{f.label}</Lbl></button>
             ))}
           </div>
 
@@ -2156,7 +2156,7 @@ function App() {
                 {item.py && <div style={{ color: TONE_COLORS_LIGHT[0], fontSize: 12, fontStyle: "italic" }}>{renderPinyinTone(item.py, false)}</div>}
                 {item.text && <div style={{ color: "#aaa", fontSize: 12 }}>{item.text}</div>}
               </div>
-              <span style={{ color: STATUS_COLORS[item.status], fontSize: 11, fontWeight: "bold", whiteSpace: "nowrap" }}>{STATUS_LABELS[item.status]}</span>
+              <span style={{ color: STATUS_COLORS[item.status], fontSize: 12, fontWeight: "bold", whiteSpace: "nowrap" }}><Lbl gap={6}><LevelDot color={STATUS_COLORS[item.status]} />{STATUS_LABELS[item.status]}</Lbl></span>
             </div>
           ))}
         </div>
@@ -2677,7 +2677,7 @@ function App() {
               flex: 1, minHeight: 52, padding: "14px 0", borderRadius: 14, border: "2px solid rgba(255,107,53,0.4)",
               background: "rgba(255,107,53,0.1)", color: "#FF9D3D", fontSize: 14, fontWeight: "bold", cursor: "pointer"
             }}>
-              {isReference ? t("ver_explicacion", lang) : t("revelar", lang)}
+              <Lbl icon={isReference ? "vocab" : "eye"} size={17}>{isReference ? t("ver_explicacion", lang) : t("revelar", lang)}</Lbl>
             </button>
           </div>
         )}
