@@ -620,6 +620,29 @@ function bookInfo(unit) {
 const SCREEN_BG = "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)";
 const FONT_UI = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif";
 
+// Tokens de color: texto secundario/terciario cálidos con contraste AA sobre el fondo oscuro,
+// y degradados de acción con contraste suficiente para texto blanco.
+const TEXT_2 = "#D9C3AE";
+const TEXT_3 = "#A8917C";
+const GRAD_PRIMARY = "linear-gradient(135deg, #D84315, #EF6C00)";
+const GRAD_BUILD = "linear-gradient(135deg, #00796B, #0097A7)";
+
+// Íconos de línea (estilo Lucide) — se tiñen con currentColor y se ven igual en todas las plataformas.
+const ICON_PATHS = {
+  home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  patterns: '<path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"/><rect x="3" y="14" width="7" height="7" rx="1"/><circle cx="17.5" cy="17.5" r="3.5"/>',
+  build: '<path d="M12 20h9"/><path d="M16.4 3.6a2.1 2.1 0 0 1 3 3L7.4 18.6a2 2 0 0 1-.9.5l-2.9.8a.5.5 0 0 1-.6-.6l.8-2.9a2 2 0 0 1 .5-.9z"/>',
+  writing: '<path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/>',
+  vocab: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+};
+function Icon({ name, size = 22, stroke = 2 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke}
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICON_PATHS[name] }} />
+  );
+}
+
 // Vibración corta como respuesta táctil (solo Android/Chrome; iOS Safari no la soporta).
 let HAPTICS_ON = true;
 function haptic(pattern) {
@@ -674,19 +697,19 @@ function ProgressRing({ pct, size = 84, color = "#FF9D3D", lang }) {
 // en el header (ver SettingsGearButton), accesible igual en 1 toque desde
 // cualquier pantalla principal.
 const TABS = [
-  { key: "menu", icon: "🏠", labelKey: "tab_inicio" },
-  { key: "patterns", icon: "📐", labelKey: "tab_patrones" },
-  { key: "buildHub", icon: "✏️", labelKey: "tab_construir" },
-  { key: "writingHub", icon: "🖌️", labelKey: "tab_escritura" },
-  { key: "vocabHub", icon: "🔤", labelKey: "tab_vocabulario" },
+  { key: "menu", icon: "home", labelKey: "tab_inicio" },
+  { key: "patterns", icon: "patterns", labelKey: "tab_patrones" },
+  { key: "buildHub", icon: "build", labelKey: "tab_construir" },
+  { key: "writingHub", icon: "writing", labelKey: "tab_escritura" },
+  { key: "vocabHub", icon: "vocab", labelKey: "tab_vocabulario" },
 ];
 
 function SettingsGearButton({ setMode, style }) {
   return (
     <button onClick={() => setMode("settings")} style={{
-      background: "none", border: "none", color: "#FFD09B", fontSize: 20,
-      cursor: "pointer", padding: 4, lineHeight: 1, ...style
-    }} aria-label="Opciones">⚙️</button>
+      background: "rgba(255,255,255,0.07)", border: "none", color: TEXT_2, borderRadius: 12,
+      cursor: "pointer", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", ...style
+    }} aria-label="Opciones"><Icon name="settings" size={22} /></button>
   );
 }
 
@@ -717,19 +740,24 @@ function TabBar({ activeMode, setMode, lang }) {
         display: "flex", justifyContent: "space-around", alignItems: "center",
         background: "rgba(18,9,3,0.94)", backdropFilter: "blur(10px)",
         borderTop: "1px solid rgba(255,255,255,0.08)",
-        paddingTop: 8, paddingBottom: "calc(8px + env(safe-area-inset-bottom, 0px))",
+        paddingTop: 6, paddingBottom: "calc(6px + env(safe-area-inset-bottom, 0px))",
       }}>
         {TABS.map(tab => {
           const active = activeMode === tab.key;
           return (
             <button key={tab.key} className="gwc-tab" onClick={() => setMode(tab.key)} style={{
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
               background: "none", border: "none", cursor: "pointer",
-              padding: "4px 6px", color: active ? "#FF9D3D" : "rgba(255,255,255,0.45)",
-              fontSize: 10, fontFamily: FONT_UI, fontWeight: 700,
+              padding: "2px 2px", minWidth: 62, color: active ? "#FFB45C" : TEXT_3,
+              fontSize: 11, fontFamily: FONT_UI, fontWeight: active ? 700 : 600,
               transition: "color 0.15s ease, transform 0.1s ease"
             }}>
-              <span style={{ fontSize: 20, lineHeight: 1, filter: active ? "none" : "grayscale(0.5) opacity(0.75)" }}>{tab.icon}</span>
+              <span style={{
+                width: 56, height: 30, borderRadius: 15, display: "flex", alignItems: "center", justifyContent: "center",
+                background: active ? "rgba(255,157,61,0.18)" : "transparent", transition: "background 0.2s ease"
+              }}>
+                <Icon name={tab.icon} size={22} stroke={active ? 2.3 : 2} />
+              </span>
               {t(tab.labelKey, lang)}
             </button>
           );
@@ -815,7 +843,7 @@ function RevealButton({ onClick, children, color = "#FF9D3D" }) {
 // título centrado + descripción opcional + contenido propio + tabbar.
 function HubScreen({ title, titleColor, description, mode, setMode, lang, children }) {
   return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 76px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
           <span style={{ flex: 1 }} />
@@ -1391,7 +1419,7 @@ function App() {
   const back_es = cardText(card, "es", lang);
 
   if (mode === "menu") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 76px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
@@ -1425,25 +1453,25 @@ function App() {
 
         {/* Repaso de hoy */}
         <div style={{
-          background: dueCount > 0 ? "linear-gradient(135deg, #FF6B35, #FF9D3D)" : "rgba(76,175,80,0.12)",
+          background: dueCount > 0 ? GRAD_PRIMARY : "rgba(76,175,80,0.12)",
           borderRadius: 16, padding: 18, marginBottom: 14,
           border: dueCount > 0 ? "none" : "2px solid rgba(76,175,80,0.35)"
         }}>
           {dueCount > 0 ? (
             <>
-              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, margin: "0 0 2px 0", fontFamily: FONT_UI }}>{t("repaso_hoy_title", lang)}</p>
-              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, margin: "0 0 8px 0", fontFamily: FONT_UI }}>
+              <p style={{ color: "rgba(255,255,255,0.97)", fontSize: 13, margin: "0 0 2px 0", fontFamily: FONT_UI }}>{t("repaso_hoy_title", lang)}</p>
+              <p style={{ color: "rgba(255,255,255,0.9)", fontSize: 12, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
                 {t("repaso_hoy_hint", lang)}
               </p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <span style={{ color: "white", fontSize: 22, fontWeight: "bold", fontFamily: FONT_UI }}>{dueCount} {t("tarjetas_suffix", lang)}</span>
-                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, marginTop: 2, fontFamily: FONT_UI }}>
+                  <div style={{ color: "rgba(255,255,255,0.95)", fontSize: 12, marginTop: 2, fontFamily: FONT_UI }}>
                     {[newDueCount > 0 && `🆕 ${newDueCount} ${t("nuevas_suffix", lang)}`, reviewDueCount > 0 && `🔁 ${reviewDueCount} ${t("repaso_suffix", lang)}`].filter(Boolean).join(" · ")}
                   </div>
                 </div>
                 <button onClick={startReviewToday} style={{
-                  background: "white", color: "#FF6B35", border: "none", borderRadius: 12,
+                  background: "white", color: "#C23B0F", border: "none", borderRadius: 14,
                   padding: "10px 20px", fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: FONT_UI
                 }}>
                   {t("repasar_btn", lang)}
@@ -1460,13 +1488,13 @@ function App() {
         {/* Navegación principal */}
         <button onClick={startStudy} disabled={selectedUnits.length === 0} style={{
           width: "100%", padding: "18px 0", borderRadius: 16, border: "none", marginBottom: 4,
-          background: selectedUnits.length === 0 ? "#444" : "linear-gradient(135deg, #FF6B35, #FF9D3D)",
+          background: selectedUnits.length === 0 ? "#444" : GRAD_PRIMARY,
           color: "white", fontSize: 17, fontWeight: "bold", cursor: selectedUnits.length === 0 ? "not-allowed" : "pointer",
           fontFamily: FONT_UI, letterSpacing: 0.5, boxShadow: "0 4px 20px rgba(255,107,53,0.35)"
         }}>
           {t("flashcards_btn", lang)} · {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_suffix", lang)}
         </button>
-        <p style={{ textAlign: "center", color: "#666", fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
+        <p style={{ textAlign: "center", color: TEXT_3, fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
           {hasHistory
             ? `${studyDir === "es→zh" ? t("dir_short_prompt_zh", lang) : t("dir_short_zh_prompt", lang)} · ${selectedUnits.length} ${t("cambiar_en_opciones", lang)}`
             : t("home_subtitle_welcome", lang)}
@@ -1476,7 +1504,7 @@ function App() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
           <button onClick={() => setMode("buildHub")} style={{
             padding: "14px 8px", borderRadius: 16, border: "none",
-            background: "linear-gradient(135deg, #00838F, #4DD0E1)",
+            background: GRAD_BUILD,
             color: "white", cursor: "pointer", fontFamily: FONT_UI,
             display: "flex", flexDirection: "column", alignItems: "center", gap: 4
           }}>
@@ -1511,7 +1539,7 @@ function App() {
 
   // Pantalla de opciones: dirección, audio, pinyin, selector de unidades, reiniciar progreso
   if (mode === "settings") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 76px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 500, width: "100%" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", fontFamily: FONT_UI }}>{t("opciones_title", lang)}</span>
@@ -1573,7 +1601,7 @@ function App() {
           <div key={toggle.key} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "12px 16px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ color: "#FFD09B", fontSize: 13, fontFamily: FONT_UI }}>{t(toggle.key, lang)}</span>
             <div onClick={() => toggle.set(p => !p)} style={{
-              width: 44, height: 24, borderRadius: 12, background: toggle.val ? "#FF6B35" : "#555",
+              width: 44, height: 24, borderRadius: 12, background: toggle.val ? "#EF6C00" : "#7A6A5C",
               cursor: "pointer", position: "relative", transition: "background 0.3s"
             }}>
               <div style={{
@@ -1684,7 +1712,7 @@ function App() {
           </p>
         </div>
 
-        <p onClick={resetProgress} style={{ textAlign: "center", color: "#555", fontSize: 11, marginTop: 8, cursor: "pointer", fontFamily: FONT_UI, textDecoration: "underline" }}>
+        <p onClick={resetProgress} style={{ textAlign: "center", color: TEXT_3, fontSize: 11, marginTop: 8, cursor: "pointer", fontFamily: FONT_UI, textDecoration: "underline" }}>
           {t("reiniciar_progreso", lang)}
         </p>
       </div>
@@ -1704,7 +1732,7 @@ function App() {
       actions={[
         dueCount > 0 && {
           label: `${t("seguir_repaso_hoy", lang)} (${dueCount} ${t("pendientes_suffix", lang)})`, onClick: startReviewToday,
-          background: "linear-gradient(135deg, #FF6B35, #FF9D3D)", color: "white", fontSize: 15, bold: true,
+          background: GRAD_PRIMARY, color: "white", fontSize: 15, bold: true,
         },
         {
           label: t("repasar_fallidas", lang),
@@ -1715,7 +1743,7 @@ function App() {
             setCurrentIdx(0); setFlipped(false); setRatings({}); setMode("study");
           },
           border: dueCount > 0 ? "2px solid rgba(255,107,53,0.4)" : "none",
-          background: dueCount > 0 ? "transparent" : "linear-gradient(135deg, #FF6B35, #FF9D3D)",
+          background: dueCount > 0 ? "transparent" : GRAD_PRIMARY,
           color: dueCount > 0 ? "#FF9D3D" : "white", fontSize: 15, bold: true,
         },
         { label: t("construir_con_unidades", lang), onClick: startBuild, disabled: buildableCards.length === 0, border: "2px solid rgba(0,131,143,0.4)", color: "#4DD0E1", fontSize: 14 },
@@ -1727,7 +1755,7 @@ function App() {
 
   // Modo: lista de categorías de patrones
   if (mode === "patterns") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 76px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
           <span style={{ flex: 1 }} />
@@ -1746,8 +1774,9 @@ function App() {
           return (
             <button key={cat.key} onClick={() => openCategory(cat)} style={{
               width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "16px 18px", borderRadius: 16, marginBottom: 10,
-              border: `2px solid ${cat.color}55`, background: `${cat.color}15`,
+              padding: "16px 18px", borderRadius: 18, marginBottom: 10,
+              border: `1px solid ${cat.color}44`, background: `linear-gradient(135deg, ${cat.color}26, ${cat.color}0d)`,
+              boxShadow: `inset 4px 0 0 ${cat.color}`,
               cursor: "pointer", textAlign: "left"
             }}>
               <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1755,8 +1784,8 @@ function App() {
                 <span style={{ color: "white", fontSize: 15, fontWeight: "bold" }}>{categoryLabel(cat, lang)}</span>
               </span>
               <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                <span style={{ color: count > 0 ? cat.color : "#666", fontSize: 13, fontWeight: "bold" }}>{count} →</span>
-                <span style={{ color: pct > 0 ? "#4CAF50" : "#888", fontSize: 10, fontFamily: FONT_UI }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
+                <span style={{ color: count > 0 ? "#fff" : TEXT_3, background: count > 0 ? `${cat.color}66` : "rgba(255,255,255,0.06)", borderRadius: 12, padding: "2px 10px", fontSize: 13, fontWeight: "bold" }}>{count} →</span>
+                <span style={{ color: pct > 0 ? "#81C784" : TEXT_3, fontSize: 11, fontFamily: FONT_UI }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
               </span>
             </button>
           );
@@ -1840,7 +1869,7 @@ function App() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button onClick={startBuild} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #00838F, #4DD0E1)", color: "white", fontSize: 15, fontWeight: "bold", cursor: "pointer" }}>
+          <button onClick={startBuild} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: GRAD_BUILD, color: "white", fontSize: 15, fontWeight: "bold", cursor: "pointer" }}>
             {t("otra_ronda", lang)}
           </button>
           <button onClick={startStudy} style={{ padding: "14px 0", borderRadius: 14, border: "2px solid rgba(255,107,53,0.4)", background: "transparent", color: "#FF9D3D", fontSize: 14, cursor: "pointer" }}>
@@ -1882,7 +1911,7 @@ function App() {
         </div>
         <button onClick={startBuild} disabled={buildableCards.length === 0} style={{
           width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-          background: buildableCards.length === 0 ? "#444" : "linear-gradient(135deg, #00838F, #4DD0E1)",
+          background: buildableCards.length === 0 ? "#444" : GRAD_BUILD,
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: buildableCards.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
@@ -1910,7 +1939,7 @@ function App() {
         <button onClick={() => startWriting(true)} style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
-          background: "linear-gradient(135deg, #C6501F, #FF9D3D)", color: "white", cursor: "pointer", fontFamily: FONT_UI
+          background: GRAD_PRIMARY, color: "white", cursor: "pointer", fontFamily: FONT_UI
         }}>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{t("repasar_pendientes_hoy", lang)}</span>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{writeDueChars.length} →</span>
@@ -1921,7 +1950,7 @@ function App() {
         <div style={{ fontSize: 34, marginBottom: 8 }}>{writableChars.slice(0, 6).join(" ")}</div>
         <button onClick={() => startWriting(false)} disabled={writableChars.length === 0} style={{
           width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-          background: writableChars.length === 0 ? "#444" : "linear-gradient(135deg, #C6501F, #FF9D3D)",
+          background: writableChars.length === 0 ? "#444" : GRAD_PRIMARY,
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: writableChars.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
@@ -1952,7 +1981,7 @@ function App() {
         <button onClick={() => startVocab(true)} style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
-          background: "linear-gradient(135deg, #00ACC1, #4DD0E1)", color: "white", cursor: "pointer", fontFamily: FONT_UI
+          background: GRAD_BUILD, color: "white", cursor: "pointer", fontFamily: FONT_UI
         }}>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{t("repasar_pendientes_hoy", lang)}</span>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{vocabDueCards.length} →</span>
@@ -1961,7 +1990,7 @@ function App() {
       <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 16, marginBottom: 14, textAlign: "center" }}>
         <button onClick={() => startVocab(false)} disabled={vocabCards.length === 0} style={{
           width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-          background: vocabCards.length === 0 ? "#444" : "linear-gradient(135deg, #00ACC1, #4DD0E1)",
+          background: vocabCards.length === 0 ? "#444" : GRAD_BUILD,
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: vocabCards.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
@@ -2151,7 +2180,7 @@ function App() {
 
             <button onClick={nextWriteChar} style={{
               width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
-              background: writeComplete ? "linear-gradient(135deg, #C6501F, #FF9D3D)" : "rgba(255,255,255,0.08)",
+              background: writeComplete ? GRAD_PRIMARY : "rgba(255,255,255,0.08)",
               color: writeComplete ? "white" : "#888", fontSize: 14, fontWeight: "bold", cursor: "pointer"
             }}>
               {writeIdx + 1 >= writeDeck.length ? t("terminar", lang) : t("siguiente", lang)}
@@ -2194,7 +2223,7 @@ function App() {
             {!mixedFlipped ? (
               <>
                 <div style={{ fontSize: 22, color: "white", textAlign: "center", lineHeight: 1.4 }}>{cardText(mixedCard, "es", lang)}</div>
-                <div style={{ marginTop: 16, color: "#555", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ marginTop: 16, color: TEXT_3, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
                   <span>👆</span> {t("toca_revelar", lang)}
                 </div>
               </>
@@ -2226,7 +2255,7 @@ function App() {
             </div>
           )}
 
-          <p style={{ textAlign: "center", color: "#666", fontSize: 11, marginTop: 20 }}>
+          <p style={{ textAlign: "center", color: TEXT_3, fontSize: 11, marginTop: 20 }}>
             {t("mixed_hint", lang)}
           </p>
         </div>
@@ -2303,7 +2332,7 @@ function App() {
               {!wasCorrect && (
                 <button onClick={checkHardAnswer} style={{
                   width: "100%", padding: "12px 0", borderRadius: 14, border: "none", marginBottom: 16,
-                  background: "linear-gradient(135deg, #00838F, #4DD0E1)", color: "white", fontSize: 14, fontWeight: "bold", cursor: "pointer"
+                  background: GRAD_BUILD, color: "white", fontSize: 14, fontWeight: "bold", cursor: "pointer"
                 }}>
                   {t("verificar", lang)}
                 </button>
@@ -2318,7 +2347,7 @@ function App() {
                 border: `2px solid ${wasCorrect ? "#4CAF50" : wasWrong ? "#F44336" : "rgba(255,255,255,0.15)"}`,
                 transition: "border-color 0.3s"
               }}>
-                {answer.length === 0 && <span style={{ color: "#555", fontSize: 13 }}>{t("toca_fichas_orden", lang)}</span>}
+                {answer.length === 0 && <span style={{ color: TEXT_3, fontSize: 13 }}>{t("toca_fichas_orden", lang)}</span>}
                 {answer.map((tile, i) => {
                   // Al fallar, marca cada ficha ya colocada según si quedó en la
                   // posición correcta — así se ve exactamente cuál mover, en vez
@@ -2367,7 +2396,7 @@ function App() {
               {isMedium && !wasCorrect && (
                 <button onClick={checkMediumAnswer} disabled={answer.length === 0} style={{
                   width: "100%", padding: "12px 0", borderRadius: 14, border: "none", marginBottom: 16,
-                  background: answer.length === 0 ? "#444" : "linear-gradient(135deg, #00838F, #4DD0E1)",
+                  background: answer.length === 0 ? "#444" : GRAD_BUILD,
                   color: "white", fontSize: 14, fontWeight: "bold", cursor: answer.length === 0 ? "not-allowed" : "pointer"
                 }}>
                   {t("verificar", lang)}
@@ -2407,7 +2436,7 @@ function App() {
             ) : (
               <button onClick={nextBuildCard} style={{
                 flex: 1, padding: "12px 0", borderRadius: 14, border: "none",
-                background: "linear-gradient(135deg, #00838F, #4DD0E1)", color: "white", fontSize: 14, fontWeight: "bold", cursor: "pointer"
+                background: GRAD_BUILD, color: "white", fontSize: 14, fontWeight: "bold", cursor: "pointer"
               }}>
                 {t("siguiente", lang)}
               </button>
@@ -2447,17 +2476,17 @@ function App() {
           onPointerCancel={onCardPointerUp}
           style={{
             position: "relative",
-            background: flipped ? color.bg : "rgba(255,255,255,0.05)",
+            background: flipped ? color.bg : "linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03))",
             borderRadius: 24, padding: "32px 24px", minHeight: 260,
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             cursor: flipped ? (dragging ? "grabbing" : "grab") : "pointer",
             touchAction: "pan-y",
-            borderTop: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
-            borderRight: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
-            borderBottom: `2px solid ${flipped ? color.accent : "rgba(255,255,255,0.1)"}`,
+            borderTop: `1px solid ${flipped ? color.accent + "88" : "rgba(255,255,255,0.12)"}`,
+            borderRight: `1px solid ${flipped ? color.accent + "88" : "rgba(255,255,255,0.12)"}`,
+            borderBottom: `1px solid ${flipped ? color.accent + "88" : "rgba(255,255,255,0.12)"}`,
             borderLeft: `6px solid ${color.accent}`,
             transition: dragging ? "none" : "transform 0.3s ease, opacity 0.3s ease, background 0.35s ease, box-shadow 0.35s ease",
-            boxShadow: flipped ? `0 8px 32px ${color.accent}33` : "none",
+            boxShadow: flipped ? `0 12px 36px ${color.accent}40` : "0 10px 30px rgba(0,0,0,0.35)",
             opacity: animating ? 0 : 1,
             transform: `translateX(${dragX}px) rotate(${dragX / 20}deg) scale(${animating ? 0.95 : 1})`
           }}>
@@ -2503,7 +2532,7 @@ function App() {
                   <p style={{ color: "#888", fontSize: 13, textAlign: "center", margin: 0 }}>{t("sin_audio", lang)}</p>
                 )
               )}
-              <div style={{ marginTop: 16, color: "#555", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ marginTop: 16, color: TEXT_3, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
                 <span>👆</span> {isReference ? t("toca_revelar_referencia", lang) : t("toca_revelar", lang)}
               </div>
             </div>
@@ -2537,7 +2566,7 @@ function App() {
 
         {/* Rating buttons */}
         {flipped && (
-          <p style={{ textAlign: "center", color: "#555", fontSize: 11, margin: "14px 0 0 0", fontFamily: FONT_UI }}>
+          <p style={{ textAlign: "center", color: TEXT_3, fontSize: 11, margin: "14px 0 0 0", fontFamily: FONT_UI }}>
             {t("swipe_hint", lang)}
           </p>
         )}
@@ -2587,7 +2616,7 @@ function App() {
         )}
 
         {/* Mini stats */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 20, fontSize: 12, color: "#666" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 20, fontSize: 12, color: TEXT_3 }}>
           <span style={{ color: "#4CAF50" }}>✅ {knowCount}</span>
           <span style={{ color: "#FF9D3D" }}>🤔 {almostCount}</span>
           <span style={{ color: "#F44336" }}>❌ {dontCount}</span>
