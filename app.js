@@ -29,6 +29,18 @@ const UI_STRINGS = {
   sin_audio: { es: "Esta tarjeta no tiene audio disponible", en: "This card has no audio available", fr: "Cette carte n'a pas d'audio disponible" },
   menu_back: { es: "← Menú", en: "← Menu", fr: "← Menu" },
   categorias_back: { es: "← Categorías", en: "← Categories", fr: "← Catégories" },
+  niveles_suffix: { es: "niveles", en: "levels", fr: "niveaux" },
+  agrupar_title: { es: "Organizar el contenido por", en: "Organize content by", fr: "Organiser le contenu par" },
+  agrupar_units: { es: "Libros y unidades", en: "Books & units", fr: "Livres et unités" },
+  agrupar_hsk: { es: "Nivel HSK 3.0", en: "HSK 3.0 level", fr: "Niveau HSK 3.0" },
+  seleccionar_niveles: { es: "Seleccionar niveles HSK", en: "Select HSK levels", fr: "Sélectionner les niveaux HSK" },
+  hsk_desc: { es: "Clasifica tus tarjetas con las listas oficiales HSK 3.0 (2021). El nivel de una frase es el de su palabra más difícil; es una estimación.", en: "Sorts your cards using the official HSK 3.0 (2021) lists. A sentence's level is that of its hardest word; it's an estimate.", fr: "Classe vos cartes avec les listes officielles HSK 3.0 (2021). Le niveau d'une phrase est celui de son mot le plus difficile ; c'est une estimation." },
+  hsk_band_1: { es: "Elemental · niveles 1–3", en: "Elementary · levels 1–3", fr: "Élémentaire · niveaux 1–3" },
+  hsk_band_2: { es: "Intermedio · niveles 4–6", en: "Intermediate · levels 4–6", fr: "Intermédiaire · niveaux 4–6" },
+  hsk_band_3: { es: "Avanzado · niveles 7–9", en: "Advanced · levels 7–9", fr: "Avancé · niveaux 7–9" },
+  hsk_band_0: { es: "Fuera de las listas", en: "Outside the lists", fr: "Hors des listes" },
+  hsk_out: { es: "Sin nivel", en: "No level", fr: "Sans niveau" },
+  cambiar_en_opciones_hsk: { es: "niveles HSK seleccionados · cambiar en Opciones", en: "HSK levels selected · change in Settings", fr: "niveaux HSK sélectionnés · changer dans Options" },
   unidades_suffix: { es: "unidades", en: "units", fr: "unités" },
   mastery_title_vocab: { es: "Palabras que domino", en: "Words I've mastered", fr: "Mots que je maîtrise" },
   mastery_title_chars: { es: "Caracteres que domino", en: "Characters I've mastered", fr: "Caractères que je maîtrise" },
@@ -459,6 +471,8 @@ const DEFAULT_PREFS = {
   showPinyin: true,
   autoPlay: true,
   haptics: true,
+  groupBy: "units", // "units" = libros/unidades · "hsk" = niveles HSK 3.0
+  selectedLevels: [1, 2, 3],
   builderLevel: "easy",
   dailyCap: 0, // 0 = sin límite de tarjetas de repaso por día
   lang: "es", // "es" | "en" | "fr" — idioma de la interfaz y del significado/ejemplo de las tarjetas
@@ -753,12 +767,60 @@ function SettingsGearButton({ setMode, style }) {
   );
 }
 
+// ---------- Nivel HSK 3.0 estimado por tarjeta ----------
+// Usa las listas oficiales de hsk-data.js: segmenta el chino por la coincidencia más larga y toma el
+// nivel de la palabra más difícil (o, si no está en las listas, el del carácter). Nivel 7 = banda 7–9;
+// 0 = sin nivel (partículas sueltas, texto sin chino).
+const HSK_LEVELS = [1, 2, 3, 4, 5, 6, 7, 0];
+const HSK_BANDS = [
+  { key: "hsk_band_1", levels: [1, 2, 3] },
+  { key: "hsk_band_2", levels: [4, 5, 6] },
+  { key: "hsk_band_3", levels: [7] },
+  { key: "hsk_band_0", levels: [0] },
+];
+const HSK_COLORS = { 1: "#2E7D32", 2: "#00796B", 3: "#0277BD", 4: "#4527A0", 5: "#7B1FA2", 6: "#AD1457", 7: "#D84315", 0: "#546E7A" };
+let HSK_MAPS = null;
+function hskMaps() {
+  if (HSK_MAPS) return HSK_MAPS;
+  const words = new Map(), chars = new Map();
+  for (let l = 1; l <= 7; l++) {
+    ((window.HSK_WORDS && window.HSK_WORDS[l]) || "").split(" ").forEach(w => { if (w && !words.has(w)) words.set(w, l); });
+    Array.from((window.HSK_CHARS && window.HSK_CHARS[l]) || "").forEach(c => { if (!chars.has(c)) chars.set(c, l); });
+  }
+  HSK_MAPS = { words, chars };
+  return HSK_MAPS;
+}
+function hskLevelOfText(text) {
+  const { words, chars: charMap } = hskMaps();
+  const han = Array.from(text || "").filter(c => /[一-鿿]/.test(c));
+  let max = 0, i = 0;
+  while (i < han.length) {
+    let matched = false;
+    for (let n = Math.min(8, han.length - i); n >= 1; n--) {
+      const lv = words.get(han.slice(i, i + n).join(""));
+      if (lv) { max = Math.max(max, lv); i += n; matched = true; break; }
+    }
+    if (!matched) {
+      const lv = charMap.get(han[i]);
+      if (lv) max = Math.max(max, lv);
+      i++;
+    }
+  }
+  return max;
+}
+const HSK_CARD_CACHE = {};
+function cardHsk(card) {
+  if (!(card.id in HSK_CARD_CACHE)) HSK_CARD_CACHE[card.id] = hskLevelOfText(card.zh);
+  return HSK_CARD_CACHE[card.id];
+}
+function hskShort(level) { return level === 0 ? "HSK ?" : level === 7 ? "HSK 7–9" : `HSK ${level}`; }
+
 // ---------- Escritura de trazos ----------
 const HAN_REGEX = /[一-鿿]/g;
-function uniqueCharsForUnits(units) {
+function uniqueCharsFor(inSelection) {
   const seen = new Set();
   const chars = [];
-  ALL_CARDS.filter(c => units.includes(c.unit)).forEach(c => {
+  ALL_CARDS.filter(inSelection).forEach(c => {
     const matches = (c.zh || "").match(HAN_REGEX);
     if (!matches) return;
     matches.forEach(ch => {
@@ -976,6 +1038,12 @@ function ResultsScreen({ icon = "trophy", title, titleColor, subtitle, stats, ac
 function App() {
   const initialPrefs = loadPrefs();
   const [selectedUnits, setSelectedUnits] = useState(initialPrefs.selectedUnits);
+  const [groupBy, setGroupBy] = useState(initialPrefs.groupBy);
+  const [selectedLevels, setSelectedLevels] = useState(initialPrefs.selectedLevels);
+  // Filtro único de "qué tarjetas están seleccionadas": por unidades del libro o por nivel HSK 3.0.
+  const inSel = (c) => groupBy === "hsk" ? selectedLevels.includes(cardHsk(c)) : selectedUnits.includes(c.unit);
+  const selCount = groupBy === "hsk" ? selectedLevels.length : selectedUnits.length;
+  const toggleLevel = (l) => setSelectedLevels(prev => prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l]);
   const [mode, setMode] = useState("menu");
   const [masteryKind, setMasteryKind] = useState("vocab"); // "vocab" | "chars" — qué lista muestra la pantalla "Dominio"
   const [masteryFilter, setMasteryFilter] = useState("all"); // "all" | "mastered" | "learning" | "new"
@@ -1038,7 +1106,7 @@ function App() {
   // pareciera no hacer nada, porque son el 70% de las tarjetas de Patrones),
   // solo se muestran si TODO su vocabulario ya está cubierto por lo seleccionado.
   const knownChars = new Set();
-  ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).forEach(c => {
+  ALL_CARDS.filter(inSel).forEach(c => {
     const m = (c.zh || "").match(HAN_REGEX);
     if (m) m.forEach(ch => knownChars.add(ch));
   });
@@ -1051,7 +1119,7 @@ function App() {
   // en Opciones (igual que Flashcards/Construir/Vocabulario/Escritura) y
   // ordenadas por unidad para reflejar el orden en que se van viendo en el curso.
   const categoryCards = (cat) => ALL_CARDS
-    .filter(c => cat.ids.includes(c.id) && (c.unit === 30 ? isUnlockedDrill(c) : selectedUnits.includes(c.unit)))
+    .filter(c => cat.ids.includes(c.id) && (c.unit === 30 ? isUnlockedDrill(c) : inSel(c)))
     .sort((a, b) => a.unit - b.unit);
   const categoryMastery = (cat) => masteryFor(categoryCards(cat));
 
@@ -1109,8 +1177,8 @@ function App() {
 
   // Guarda preferencias automáticamente cuando cambian (va aquí porque necesita builderLevel ya declarado)
   useEffect(() => {
-    savePrefs({ selectedUnits, studyDir, showPinyin, autoPlay, haptics, builderLevel, dailyCap, lang });
-  }, [selectedUnits, studyDir, showPinyin, autoPlay, haptics, builderLevel, dailyCap, lang]);
+    savePrefs({ selectedUnits, groupBy, selectedLevels, studyDir, showPinyin, autoPlay, haptics, builderLevel, dailyCap, lang });
+  }, [selectedUnits, groupBy, selectedLevels, studyDir, showPinyin, autoPlay, haptics, builderLevel, dailyCap, lang]);
 
   // Transición suave al cambiar de pantalla (solo el contenido; la barra inferior fija no se mueve).
   useEffect(() => {
@@ -1133,7 +1201,7 @@ function App() {
   const [hardResult, setHardResult] = useState(null);
   const [hardDiff, setHardDiff] = useState([]);
 
-  const buildableCards = ALL_CARDS.filter(c => selectedUnits.includes(c.unit) && isGoodForBuilder(c));
+  const buildableCards = ALL_CARDS.filter(c => inSel(c) && isGoodForBuilder(c));
   const buildCard = buildDeck[buildIdx];
 
   const getDistractorChars = (correctChars, count) => {
@@ -1185,7 +1253,7 @@ function App() {
   const writeTargetRef = useRef(null);
   const writeWriterRef = useRef(null);
 
-  const writableChars = uniqueCharsForUnits(selectedUnits);
+  const writableChars = uniqueCharsFor(inSel);
   const writeDueChars = writableChars.filter(ch => isDue(ch, charProgress));
   const writeChar = writeDeck[writeIdx];
 
@@ -1317,7 +1385,7 @@ function App() {
   }, [pool.length, mode]);
 
   const startStudy = () => {
-    const filtered = ALL_CARDS.filter(c => selectedUnits.includes(c.unit));
+    const filtered = ALL_CARDS.filter(inSel);
     const shuffled = shuffle(filtered);
     setDeck(shuffled);
     setCurrentIdx(0);
@@ -1328,7 +1396,7 @@ function App() {
     setMode("study");
   };
 
-  const vocabCards = ALL_CARDS.filter(c => c.kind === "vocab" && selectedUnits.includes(c.unit));
+  const vocabCards = ALL_CARDS.filter(c => c.kind === "vocab" && inSel(c));
   const vocabDueCards = vocabCards.filter(c => isDue(c.id, progress));
   const startVocab = (dueOnly = false) => {
     const source = dueOnly ? vocabDueCards : vocabCards;
@@ -1348,7 +1416,7 @@ function App() {
     const dueIds = new Set(dueCards.map(c => c.id));
     let source = dueCards;
     if (source.length < MIXED_MIN_SIZE) {
-      const filler = ALL_CARDS.filter(c => selectedUnits.includes(c.unit) && !dueIds.has(c.id));
+      const filler = ALL_CARDS.filter(c => inSel(c) && !dueIds.has(c.id));
       const shuffledFiller = shuffle(filler);
       const needed = MIXED_MIN_SIZE - source.length;
       source = [...source, ...shuffledFiller.slice(0, needed)];
@@ -1558,17 +1626,17 @@ function App() {
         </div>
 
         {/* Navegación principal */}
-        <button onClick={startStudy} disabled={selectedUnits.length === 0} style={{
+        <button onClick={startStudy} disabled={selCount === 0} style={{
           width: "100%", padding: "18px 0", borderRadius: 16, border: "none", marginBottom: 4,
-          background: selectedUnits.length === 0 ? "#444" : GRAD_PRIMARY,
-          color: "white", fontSize: 17, fontWeight: "bold", cursor: selectedUnits.length === 0 ? "not-allowed" : "pointer",
+          background: selCount === 0 ? "#444" : GRAD_PRIMARY,
+          color: "white", fontSize: 17, fontWeight: "bold", cursor: selCount === 0 ? "not-allowed" : "pointer",
           fontFamily: FONT_UI, letterSpacing: 0.5, boxShadow: "0 4px 20px rgba(255,107,53,0.35)"
         }}>
-          <Lbl icon="layers" size={21}>{noEmoji(t("flashcards_btn", lang))} · {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_suffix", lang)}</Lbl>
+          <Lbl icon="layers" size={21}>{noEmoji(t("flashcards_btn", lang))} · {ALL_CARDS.filter(inSel).length} {t("tarjetas_suffix", lang)}</Lbl>
         </button>
         <p style={{ textAlign: "center", color: TEXT_3, fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
           {hasHistory
-            ? `${studyDir === "es→zh" ? t("dir_short_prompt_zh", lang) : t("dir_short_zh_prompt", lang)} · ${selectedUnits.length} ${t("cambiar_en_opciones", lang)}`
+            ? `${studyDir === "es→zh" ? t("dir_short_prompt_zh", lang) : t("dir_short_zh_prompt", lang)} · ${selCount} ${t(groupBy === "hsk" ? "cambiar_en_opciones_hsk" : "cambiar_en_opciones", lang)}`
             : t("home_subtitle_welcome", lang)}
         </p>
 
@@ -1596,7 +1664,7 @@ function App() {
             <span style={{ fontSize: 11, opacity: 0.85 }}>{PATTERN_CATEGORIES.reduce((sum, c) => sum + categoryCards(c).length, 0)}</span>
           </button>
 
-          <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length === 0} style={{
+          <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(inSel).length === 0} style={{
             gridColumn: "1 / -1", padding: "12px 8px", borderRadius: 16, border: "2px solid rgba(123,31,162,0.4)",
             background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
             cursor: "pointer", fontFamily: FONT_UI
@@ -1703,7 +1771,62 @@ function App() {
         </div>
         <div style={{ marginBottom: 6 }} />
 
+        {/* Organizar por: libros/unidades o nivel HSK 3.0 */}
+        <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 16 }}>
+          <p style={{ color: TEXT_2, fontSize: 13, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("agrupar_title", lang)}</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[{ v: "units", k: "agrupar_units" }, { v: "hsk", k: "agrupar_hsk" }].map(o => (
+              <button key={o.v} onClick={() => setGroupBy(o.v)} style={{
+                flex: 1, minHeight: 44, padding: "8px 6px", borderRadius: 12, cursor: "pointer", fontFamily: FONT_UI, fontSize: 13,
+                border: `2px solid ${groupBy === o.v ? "#FF9D3D" : "rgba(255,255,255,0.15)"}`,
+                background: groupBy === o.v ? "rgba(255,157,61,0.15)" : "transparent",
+                color: groupBy === o.v ? "#FF9D3D" : TEXT_2, fontWeight: groupBy === o.v ? "bold" : "normal"
+              }}>{t(o.k, lang)}</button>
+            ))}
+          </div>
+        </div>
+
+        {groupBy === "hsk" && (
+          <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <p style={{ color: TEXT_2, fontSize: 13, margin: 0, fontFamily: FONT_UI }}>{t("seleccionar_niveles", lang)}</p>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => setSelectedLevels([...HSK_LEVELS])} style={{ color: "#FF9D3D", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: FONT_UI }}>{t("todas", lang)}</button>
+                <button onClick={() => setSelectedLevels([])} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: FONT_UI }}>{t("ninguna", lang)}</button>
+              </div>
+            </div>
+            <p style={{ color: TEXT_3, fontSize: 11, lineHeight: 1.45, margin: "0 0 12px 0", fontFamily: FONT_UI }}>{t("hsk_desc", lang)}</p>
+            {HSK_BANDS.map(band => (
+              <div key={band.key} style={{ marginBottom: 12 }}>
+                <p style={{ color: TEXT_3, fontSize: 11, margin: "0 0 6px 0", fontFamily: FONT_UI, fontWeight: "bold", letterSpacing: 1 }}>{t(band.key, lang)}</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                  {band.levels.map(l => {
+                    const sel = selectedLevels.includes(l);
+                    const cards = ALL_CARDS.filter(c => cardHsk(c) === l);
+                    const pct = masteryFor(cards);
+                    return (
+                      <button key={l} onClick={() => toggleLevel(l)} style={{
+                        minHeight: 64, padding: "8px 4px", borderRadius: 12, cursor: "pointer", fontFamily: FONT_UI,
+                        border: `2px solid ${sel ? HSK_COLORS[l] : "rgba(255,255,255,0.12)"}`,
+                        background: sel ? HSK_COLORS[l] : "transparent", color: sel ? "white" : TEXT_2,
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2
+                      }}>
+                        <span style={{ fontSize: 14, fontWeight: "bold" }}>{l === 0 ? t("hsk_out", lang) : hskShort(l)}</span>
+                        <span style={{ fontSize: 11, opacity: 0.9 }}>{cards.length} {t("tarjetas_suffix", lang)}{pct > 0 ? ` · ${pct}%` : ""}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            <p style={{ color: TEXT_3, fontSize: 12, margin: "4px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
+              {ALL_CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
+            </p>
+          </div>
+        )}
+
         {/* Unit selector con % de dominio */}
+        {groupBy === "units" && (
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <p style={{ color: TEXT_2, fontSize: 13, margin: 0, fontFamily: FONT_UI }}>{t("seleccionar_unidades", lang)}</p>
@@ -1780,9 +1903,10 @@ function App() {
           </div>
 
           <p style={{ color: TEXT_3, fontSize: 12, margin: "10px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
-            {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_seleccionadas", lang)}
+            {ALL_CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
           </p>
         </div>
+        )}
 
         <p onClick={resetProgress} style={{ textAlign: "center", color: TEXT_3, fontSize: 11, marginTop: 8, cursor: "pointer", fontFamily: FONT_UI, textDecoration: "underline" }}>
           {t("reiniciar_progreso", lang)}
@@ -1997,7 +2121,7 @@ function App() {
         display: "block", margin: "0 auto 20px", background: "none", border: "none",
         color: "#C6501F", fontSize: 12, cursor: "pointer", textDecoration: "underline"
       }}>
-        {selectedUnits.length} {t("cambiar_en_opciones", lang)}
+        {selCount} {t(groupBy === "hsk" ? "cambiar_en_opciones_hsk" : "cambiar_en_opciones", lang)}
       </button>
 
       {writeDueChars.length > 0 && (
@@ -2102,7 +2226,7 @@ function App() {
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <button onClick={() => setMode(isVocab ? "vocabHub" : "writingHub")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
-            <span style={{ color: TEXT_2, fontSize: 13 }}>{selectedUnits.length} {t("unidades_suffix", lang)}</span>
+            <span style={{ color: TEXT_2, fontSize: 13 }}>{selCount} {t(groupBy === "hsk" ? "niveles_suffix" : "unidades_suffix", lang)}</span>
           </div>
           <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 16px 0" }}><Lbl icon="chart" size={22}>{isVocab ? t("mastery_title_vocab", lang) : t("mastery_title_chars", lang)}</Lbl></h2>
 
@@ -2525,7 +2649,7 @@ function App() {
           <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
           <span style={{ color: TEXT_2, fontSize: 13 }}>{currentIdx + 1} / {deck.length}</span>
           <span style={{ color: TEXT_2, fontSize: 12, background: "rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: 20, fontWeight: "bold" }}>
-            <Lbl gap={6}><LevelDot color={color.light || color.accent} />{card.unit <= 10 || card.unit === 30 ? displayUnitName(card, lang) : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : displayUnitName(card, lang); })()}</Lbl>
+            <Lbl gap={6}><LevelDot color={color.light || color.accent} />{groupBy === "hsk" ? hskShort(cardHsk(card)) : card.unit <= 10 || card.unit === 30 ? displayUnitName(card, lang) : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : displayUnitName(card, lang); })()}</Lbl>
           </span>
         </div>
 
