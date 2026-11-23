@@ -52,6 +52,15 @@ const UI_STRINGS = {
   dir_listen: { es: "🔊 Solo audio (producción)", en: "🔊 Audio only (production)", fr: "🔊 Audio seulement (production)" },
   dir_listen_hint: { es: '"Solo audio" te reta a recordar el pinyin y el significado antes de revelar — sin ver el carácter primero.', en: '"Audio only" challenges you to recall the pinyin and meaning before revealing — without seeing the character first.', fr: '« Audio seulement » vous met au défi de retrouver le pinyin et le sens avant de révéler — sans voir le caractère d\'abord.' },
   toggle_audio: { es: "🔊 Reproducir audio al revelar", en: "🔊 Play audio on reveal", fr: "🔊 Lire l'audio à la révélation" },
+  prog_dominadas: { es: "Dominadas", en: "Mastered", fr: "Maîtrisés" },
+  prog_aprendiendo: { es: "Aprendiendo", en: "Learning", fr: "En cours" },
+  prog_nuevas: { es: "Nuevas", en: "New", fr: "Nouveaux" },
+  prog_title_vocab: { es: "Tu vocabulario", en: "Your vocabulary", fr: "Votre vocabulaire" },
+  prog_title_chars: { es: "Tus caracteres", en: "Your characters", fr: "Vos caractères" },
+  prog_title_build: { es: "Frases que ya dominas", en: "Sentences you've mastered", fr: "Phrases que vous maîtrisez" },
+  nivel_facil_desc: { es: "Fichas justas: solo ordénalas para formar la frase.", en: "Exact tiles: just put them in order to form the sentence.", fr: "Tuiles exactes : il suffit de les ordonner pour former la phrase." },
+  nivel_medio_desc: { es: "Hay fichas de más: elige solo las correctas y ordénalas.", en: "Extra tiles mixed in: pick only the right ones and order them.", fr: "Des tuiles en trop : choisissez les bonnes et ordonnez-les." },
+  nivel_hard_desc: { es: "Escribe la frase completa de memoria con teclado chino.", en: "Type the whole sentence from memory with a Chinese keyboard.", fr: "Écrivez toute la phrase de mémoire avec un clavier chinois." },
   toggle_haptics: { es: "📳 Vibración al responder", en: "📳 Vibrate on answer", fr: "📳 Vibration à la réponse" },
   toggle_pinyin: { es: "拼 Mostrar pinyin al revelar", en: "拼 Show pinyin on reveal", fr: "拼 Afficher le pinyin à la révélation" },
   limite_diario_title: { es: "Límite diario de repaso", en: "Daily review limit", fr: "Limite quotidienne de révision" },
@@ -617,13 +626,14 @@ function bookInfo(unit) {
   return null; // unidad 30 (referencia) u otro caso fuera de los 3 libros
 }
 
-const SCREEN_BG = "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)";
+const SCREEN_BG = "radial-gradient(120% 60% at 50% -10%, #212734 0%, #12151C 55%, #0C0E13 100%)";
 const FONT_UI = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif";
 
 // Tokens de color: texto secundario/terciario cálidos con contraste AA sobre el fondo oscuro,
 // y degradados de acción con contraste suficiente para texto blanco.
-const TEXT_2 = "#D9C3AE";
-const TEXT_3 = "#A8917C";
+const TEXT_2 = "#CBD2DE";
+const TEXT_3 = "#8F99AB";
+const CARD_BORDER = "1px solid rgba(255,255,255,0.08)";
 const GRAD_PRIMARY = "linear-gradient(135deg, #D84315, #EF6C00)";
 const GRAD_BUILD = "linear-gradient(135deg, #00796B, #0097A7)";
 
@@ -634,6 +644,17 @@ const ICON_PATHS = {
   build: '<path d="M12 20h9"/><path d="M16.4 3.6a2.1 2.1 0 0 1 3 3L7.4 18.6a2 2 0 0 1-.9.5l-2.9.8a.5.5 0 0 1-.6-.6l.8-2.9a2 2 0 0 1 .5-.9z"/>',
   writing: '<path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/>',
   vocab: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  layers: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+  shuffle: '<path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/>',
+  calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  repeat: '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  chart: '<line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/>',
+  volume: '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/>',
+  check: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  bulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+  eye: '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
   settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
 };
 function Icon({ name, size = 22, stroke = 2 }) {
@@ -642,6 +663,25 @@ function Icon({ name, size = 22, stroke = 2 }) {
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICON_PATHS[name] }} />
   );
 }
+
+// Quita el emoji inicial de un texto traducido (los íconos SVG lo reemplazan en botones y títulos).
+const noEmoji = (str) => (str || "").replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\u2190-\u21FF]+\s*/u, "");
+
+// Ícono + texto alineados en una fila.
+function Lbl({ icon, size = 18, gap = 8, children, style }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap, textAlign: "center", ...style }}>
+      {icon && <span style={{ display: "inline-flex", flexShrink: 0 }}><Icon name={icon} size={size} /></span>}
+      {icon ? <span>{children}</span> : children}
+    </span>
+  );
+}
+
+// Punto de color para niveles (reemplaza 🟢🟡🔴).
+function LevelDot({ color }) {
+  return <span style={{ width: 8, height: 8, borderRadius: "50%", background: color, display: "inline-block", flexShrink: 0 }} />;
+}
+const LEVEL_COLORS = { easy: "#66BB6A", medium: "#FFCA28", hard: "#EF5350" };
 
 // Vibración corta como respuesta táctil (solo Android/Chrome; iOS Safari no la soporta).
 let HAPTICS_ON = true;
@@ -684,7 +724,7 @@ function ProgressRing({ pct, size = 84, color = "#FF9D3D", lang }) {
         display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column"
       }}>
         <span style={{ color: "white", fontSize: 20, fontWeight: "bold", fontFamily: FONT_UI }}>{pct}%</span>
-        <span style={{ color: "#999", fontSize: 9, fontFamily: FONT_UI }}>{t("dominado", lang)}</span>
+        <span style={{ color: TEXT_3, fontSize: 9, fontFamily: FONT_UI }}>{t("dominado", lang)}</span>
       </div>
     </div>
   );
@@ -738,7 +778,7 @@ function TabBar({ activeMode, setMode, lang }) {
       <div style={{
         position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 40,
         display: "flex", justifyContent: "space-around", alignItems: "center",
-        background: "rgba(18,9,3,0.94)", backdropFilter: "blur(10px)",
+        background: "rgba(12,14,19,0.94)", backdropFilter: "blur(10px)",
         borderTop: "1px solid rgba(255,255,255,0.08)",
         paddingTop: 6, paddingBottom: "calc(6px + env(safe-area-inset-bottom, 0px))",
       }}>
@@ -769,6 +809,38 @@ function TabBar({ activeMode, setMode, lang }) {
 
 // ---------- Componentes compartidos entre modos ----------
 
+// Resumen de progreso (dominadas / aprendiendo / nuevas) para las pantallas hub.
+function ProgressSummary({ title, counts, lang }) {
+  const total = counts.mastered + counts.learning + counts.new;
+  const pct = total ? Math.round((counts.mastered / total) * 100) : 0;
+  const seg = (n, c) => n > 0 && <div style={{ width: `${(n / total) * 100}%`, background: c, transition: "width .5s ease" }} />;
+  const legend = [
+    { k: "prog_dominadas", n: counts.mastered, c: "#66BB6A" },
+    { k: "prog_aprendiendo", n: counts.learning, c: "#FFA726" },
+    { k: "prog_nuevas", n: counts.new, c: "rgba(255,255,255,0.35)" },
+  ];
+  return (
+    <div style={{ background: "rgba(255,255,255,0.05)", border: CARD_BORDER, borderRadius: 18, padding: 16, marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+        <span style={{ color: TEXT_2, fontSize: 13, fontWeight: 600 }}>{title}</span>
+        <span style={{ color: "#fff", fontSize: 24, fontWeight: 700 }}>{pct}%</span>
+      </div>
+      <div style={{ display: "flex", gap: 2, height: 10, borderRadius: 5, overflow: "hidden", background: "rgba(255,255,255,0.08)" }}>
+        {total > 0 && <>{seg(counts.mastered, "#66BB6A")}{seg(counts.learning, "#FFA726")}</>}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
+        {legend.map(l => (
+          <div key={l.k} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: TEXT_2 }}>
+            <LevelDot color={l.c} />
+            <span style={{ fontWeight: 700, color: "#fff" }}>{l.n}</span>
+            <span style={{ color: TEXT_3 }}>{t(l.k, lang)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Botón de audio 🔊 — envuelve el chequeo isSpeakableZh + la llamada a speak().
 // variant: "icon" (pastilla chica, dentro de tarjetas/listas), "label" (pastilla
 // grande con texto "Escuchar"/"Reproduciendo...", color de la unidad) o "front"
@@ -791,7 +863,7 @@ function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", 
           marginBottom: 10, transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
           ...style
         }}>
-          {speaking ? `🔊 ${t("reproduciendo", lang)}` : `🔊 ${resolvedLabel}`}
+          <Lbl icon="volume" size={16} gap={6}>{speaking ? t("reproduciendo", lang) : resolvedLabel}</Lbl>
         </button>
         {errorHint}
       </>
@@ -808,7 +880,7 @@ function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", 
           display: "flex", alignItems: "center", gap: 6,
           ...style
         }}>
-          {speaking ? `🔊 ${t("reproduciendo", lang)}` : `🔊 ${resolvedLabel}`}
+          <Lbl icon="volume" size={17} gap={6}>{speaking ? t("reproduciendo", lang) : resolvedLabel}</Lbl>
         </button>
         {errorHint}
       </>
@@ -820,7 +892,7 @@ function SpeakButton({ text, speak, speaking, color = "#aaa", variant = "icon", 
         background: "none", border: `1px solid ${color}66`, borderRadius: 20,
         padding: "3px 8px", color, fontSize: 12, cursor: "pointer", flexShrink: 0,
         ...style
-      }}>🔊</button>
+      }}><Icon name="volume" size={15} /></button>
       {errorHint}
     </>
   );
@@ -841,19 +913,19 @@ function RevealButton({ onClick, children, color = "#FF9D3D" }) {
 
 // Envoltorio de las pantallas "hub" de cada modo (Construir/Escritura/Vocabulario):
 // título centrado + descripción opcional + contenido propio + tabbar.
-function HubScreen({ title, titleColor, description, mode, setMode, lang, children }) {
+function HubScreen({ title, titleColor, icon, description, mode, setMode, lang, children }) {
   return (
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 76px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
           <span style={{ flex: 1 }} />
-          <span style={{ color: titleColor, fontSize: 15, fontWeight: "bold", textAlign: "center" }}>{title}</span>
+          <span style={{ color: titleColor, fontSize: 16, fontWeight: "bold", textAlign: "center" }}><Lbl icon={icon} size={19}>{noEmoji(title)}</Lbl></span>
           <span style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
             <SettingsGearButton setMode={setMode} />
           </span>
         </div>
         {description && (
-          <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
+          <p style={{ color: TEXT_2, fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
             {description}
           </p>
         )}
@@ -866,19 +938,19 @@ function HubScreen({ title, titleColor, description, mode, setMode, lang, childr
 
 // Pantalla de resultados al terminar una ronda (Flashcards/Vocabulario/Construir):
 // emoji + título + subtítulo + grilla de stats + lista de botones de acción.
-function ResultsScreen({ emoji, title, titleColor, subtitle, stats, actions }) {
+function ResultsScreen({ icon = "trophy", title, titleColor, subtitle, stats, actions }) {
   return (
     <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
-        <div style={{ fontSize: 52, marginBottom: 16 }}>{emoji}</div>
+        <div style={{ width: 84, height: 84, borderRadius: "50%", margin: "0 auto 18px", display: "flex", alignItems: "center", justifyContent: "center", color: titleColor, background: "rgba(255,255,255,0.06)", border: `1px solid ${titleColor}55`, boxShadow: `0 0 40px ${titleColor}33` }}><Icon name={icon} size={40} stroke={1.8} /></div>
         <h2 style={{ color: titleColor, fontSize: 24, marginBottom: 4 }}>{title}</h2>
-        <p style={{ color: "#FFD09B", marginBottom: 32, fontSize: 14 }}>{subtitle}</p>
+        <p style={{ color: TEXT_2, marginBottom: 32, fontSize: 14 }}>{subtitle}</p>
 
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${stats.length}, 1fr)`, gap: 12, marginBottom: 32 }}>
           {stats.map(s => (
-            <div key={s.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 8px" }}>
-              <div style={{ fontSize: 28, fontWeight: "bold", color: s.color }}>{s.count}</div>
-              <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>{s.label}</div>
+            <div key={s.label} style={{ background: "rgba(255,255,255,0.06)", border: CARD_BORDER, borderRadius: 16, padding: "16px 8px" }}>
+              <div style={{ fontSize: 30, fontWeight: 700, color: s.color }}>{s.count}</div>
+              <div style={{ fontSize: 12, color: TEXT_2, marginTop: 4 }}>{noEmoji(s.label)}</div>
             </div>
           ))}
         </div>
@@ -886,13 +958,13 @@ function ResultsScreen({ emoji, title, titleColor, subtitle, stats, actions }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {actions.filter(Boolean).map((a, i) => (
             <button key={i} onClick={a.onClick} disabled={a.disabled} style={{
-              padding: "14px 0", borderRadius: 14, border: a.border || "none",
-              background: a.disabled ? "#444" : (a.background || "transparent"),
-              color: a.disabled ? "#777" : (a.color || "#888"),
+              minHeight: 50, padding: "14px 0", borderRadius: 16, border: a.border || "none",
+              background: a.disabled ? "#2a2f3a" : (a.background || "transparent"),
+              color: a.disabled ? "#6b7385" : (a.color || TEXT_3),
               fontSize: a.fontSize || 14, fontWeight: a.bold ? "bold" : "normal",
               cursor: a.disabled ? "not-allowed" : "pointer"
             }}>
-              {a.label}
+              <Lbl icon={a.icon} size={17}>{noEmoji(a.label)}</Lbl>
             </button>
           ))}
         </div>
@@ -1438,7 +1510,7 @@ function App() {
                 </p>
               )}
               <div style={{ display: "flex", gap: 12, fontSize: 11, fontFamily: FONT_UI, flexWrap: "wrap" }}>
-                <span style={{ color: "#888" }}>🆕 {newCount}</span>
+                <span style={{ color: TEXT_3 }}>🆕 {newCount}</span>
                 <span style={{ color: "#FF9D3D" }}>📖 {learningCount}</span>
                 <span style={{ color: "#4CAF50" }}>⭐ {masteredCount}</span>
               </div>
@@ -1459,7 +1531,7 @@ function App() {
         }}>
           {dueCount > 0 ? (
             <>
-              <p style={{ color: "rgba(255,255,255,0.97)", fontSize: 13, margin: "0 0 2px 0", fontFamily: FONT_UI }}>{t("repaso_hoy_title", lang)}</p>
+              <p style={{ color: "rgba(255,255,255,0.97)", fontSize: 13, fontWeight: 600, margin: "0 0 2px 0", fontFamily: FONT_UI }}><Lbl icon="calendar" size={16} gap={6}>{noEmoji(t("repaso_hoy_title", lang))}</Lbl></p>
               <p style={{ color: "rgba(255,255,255,0.9)", fontSize: 12, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
                 {t("repaso_hoy_hint", lang)}
               </p>
@@ -1492,7 +1564,7 @@ function App() {
           color: "white", fontSize: 17, fontWeight: "bold", cursor: selectedUnits.length === 0 ? "not-allowed" : "pointer",
           fontFamily: FONT_UI, letterSpacing: 0.5, boxShadow: "0 4px 20px rgba(255,107,53,0.35)"
         }}>
-          {t("flashcards_btn", lang)} · {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_suffix", lang)}
+          <Lbl icon="layers" size={21}>{noEmoji(t("flashcards_btn", lang))} · {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_suffix", lang)}</Lbl>
         </button>
         <p style={{ textAlign: "center", color: TEXT_3, fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
           {hasHistory
@@ -1508,7 +1580,7 @@ function App() {
             color: "white", cursor: "pointer", fontFamily: FONT_UI,
             display: "flex", flexDirection: "column", alignItems: "center", gap: 4
           }}>
-            <span style={{ fontSize: 22 }}>✏️</span>
+            <Icon name="build" size={26} />
             <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>{t("construir_frases", lang)}</span>
             <span style={{ fontSize: 11, opacity: 0.85 }}>{buildableCards.length} {t("disponibles_suffix", lang)}</span>
           </button>
@@ -1519,7 +1591,7 @@ function App() {
             color: "#FF9D3D", cursor: "pointer", fontFamily: FONT_UI,
             display: "flex", flexDirection: "column", alignItems: "center", gap: 4
           }}>
-            <span style={{ fontSize: 22 }}>📐</span>
+            <Icon name="patterns" size={26} />
             <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>{t("patrones_gramaticales", lang)}</span>
             <span style={{ fontSize: 11, opacity: 0.85 }}>{PATTERN_CATEGORIES.reduce((sum, c) => sum + categoryCards(c).length, 0)}</span>
           </button>
@@ -1529,7 +1601,7 @@ function App() {
             background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
             cursor: "pointer", fontFamily: FONT_UI
           }}>
-            {t("sesion_mixta", lang)}
+            <Lbl icon="shuffle" size={18}>{noEmoji(t("sesion_mixta", lang))}</Lbl>
           </button>
         </div>
       </div>
@@ -1547,7 +1619,7 @@ function App() {
 
         {/* Idioma */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("idioma_title", lang)}</p>
+          <p style={{ color: TEXT_2, fontSize: 13, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("idioma_title", lang)}</p>
           <div style={{ display: "flex", gap: 8 }}>
             {[
               { v: "es", label: "🇲🇽 Español" },
@@ -1569,7 +1641,7 @@ function App() {
 
         {/* Direction */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("direccion_title", lang)}</p>
+          <p style={{ color: TEXT_2, fontSize: 13, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("direccion_title", lang)}</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
               { v: "es→zh", key: "dir_prompt_zh" },
@@ -1587,7 +1659,7 @@ function App() {
               </button>
             ))}
           </div>
-          <p style={{ color: "#888", fontSize: 11, margin: "8px 0 0 0", fontFamily: FONT_UI }}>
+          <p style={{ color: TEXT_3, fontSize: 11, margin: "8px 0 0 0", fontFamily: FONT_UI }}>
             {t("dir_listen_hint", lang)}
           </p>
         </div>
@@ -1599,7 +1671,7 @@ function App() {
           { key: "toggle_haptics", val: haptics, set: setHaptics },
         ].map(toggle => (
           <div key={toggle.key} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "12px 16px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "#FFD09B", fontSize: 13, fontFamily: FONT_UI }}>{t(toggle.key, lang)}</span>
+            <span style={{ color: TEXT_2, fontSize: 13, fontFamily: FONT_UI }}>{t(toggle.key, lang)}</span>
             <div onClick={() => toggle.set(p => !p)} style={{
               width: 44, height: 24, borderRadius: 12, background: toggle.val ? "#EF6C00" : "#7A6A5C",
               cursor: "pointer", position: "relative", transition: "background 0.3s"
@@ -1613,8 +1685,8 @@ function App() {
         ))}
         {/* Límite diario de repaso */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 4px 0", fontFamily: FONT_UI }}>{t("limite_diario_title", lang)}</p>
-          <p style={{ color: "#888", fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("limite_diario_hint", lang)}</p>
+          <p style={{ color: TEXT_2, fontSize: 13, margin: "0 0 4px 0", fontFamily: FONT_UI }}>{t("limite_diario_title", lang)}</p>
+          <p style={{ color: TEXT_3, fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("limite_diario_hint", lang)}</p>
           <div style={{ display: "flex", gap: 8 }}>
             {[0, 20, 40, 60].map(n => (
               <button key={n} onClick={() => setDailyCap(n)} style={{
@@ -1634,7 +1706,7 @@ function App() {
         {/* Unit selector con % de dominio */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <p style={{ color: "#FFD09B", fontSize: 13, margin: 0, fontFamily: FONT_UI }}>{t("seleccionar_unidades", lang)}</p>
+            <p style={{ color: TEXT_2, fontSize: 13, margin: 0, fontFamily: FONT_UI }}>{t("seleccionar_unidades", lang)}</p>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setSelectedUnits([...units])} style={{ color: "#FF9D3D", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: FONT_UI }}>{t("todas", lang)}</button>
               <button onClick={() => setSelectedUnits([])} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: FONT_UI }}>{t("ninguna", lang)}</button>
@@ -1707,7 +1779,7 @@ function App() {
             })}
           </div>
 
-          <p style={{ color: "#888", fontSize: 12, margin: "10px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
+          <p style={{ color: TEXT_3, fontSize: 12, margin: "10px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
             {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_seleccionadas", lang)}
           </p>
         </div>
@@ -1722,7 +1794,7 @@ function App() {
 
   if (mode === "results") return (
     <ResultsScreen
-      emoji="🎉" title={t("ronda_completada", lang)} titleColor="#FF9D3D"
+      icon="trophy" title={t("ronda_completada", lang)} titleColor="#FFA726"
       subtitle={`${deck.length} ${t("tarjetas_estudiadas", lang)}`}
       stats={[
         { label: t("stat_las_se", lang), count: knowCount, color: "#4CAF50" },
@@ -1732,10 +1804,10 @@ function App() {
       actions={[
         dueCount > 0 && {
           label: `${t("seguir_repaso_hoy", lang)} (${dueCount} ${t("pendientes_suffix", lang)})`, onClick: startReviewToday,
-          background: GRAD_PRIMARY, color: "white", fontSize: 15, bold: true,
+          background: GRAD_PRIMARY, color: "white", fontSize: 15, bold: true, icon: "calendar",
         },
         {
-          label: t("repasar_fallidas", lang),
+          label: t("repasar_fallidas", lang), icon: "repeat",
           onClick: () => {
             const dontKnow = deck.filter(c => ratings[c.id] === RATING.dontKnow || ratings[c.id] === RATING.almost);
             if (dontKnow.length === 0) { startStudy(); return; }
@@ -1746,9 +1818,9 @@ function App() {
           background: dueCount > 0 ? "transparent" : GRAD_PRIMARY,
           color: dueCount > 0 ? "#FF9D3D" : "white", fontSize: 15, bold: true,
         },
-        { label: t("construir_con_unidades", lang), onClick: startBuild, disabled: buildableCards.length === 0, border: "2px solid rgba(0,131,143,0.4)", color: "#4DD0E1", fontSize: 14 },
-        { label: t("nueva_ronda", lang), onClick: () => (lastDeckKind === "vocab" ? startVocab() : startStudy()), color: "#999", fontSize: 13 },
-        { label: t("menu_principal", lang), onClick: () => setMode("menu"), color: "#888", fontSize: 14 },
+        { label: t("construir_con_unidades", lang), icon: "build", onClick: startBuild, disabled: buildableCards.length === 0, border: "2px solid rgba(0,131,143,0.4)", color: "#4DD0E1", fontSize: 14 },
+        { label: t("nueva_ronda", lang), icon: "shuffle", onClick: () => (lastDeckKind === "vocab" ? startVocab() : startStudy()), color: TEXT_3, fontSize: 13 },
+        { label: t("menu_principal", lang), icon: "home", onClick: () => setMode("menu"), color: TEXT_3, fontSize: 14 },
       ]}
     />
   );
@@ -1759,12 +1831,12 @@ function App() {
       <div style={{ maxWidth: 480, width: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
           <span style={{ flex: 1 }} />
-          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", textAlign: "center" }}>{t("patrones_title", lang)}</span>
+          <span style={{ color: "#FF9D3D", fontSize: 16, fontWeight: "bold", textAlign: "center" }}><Lbl icon="patterns" size={19}>{noEmoji(t("patrones_title", lang))}</Lbl></span>
           <span style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
             <SettingsGearButton setMode={setMode} />
           </span>
         </div>
-        <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
+        <p style={{ color: TEXT_2, fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
           {t("patrones_desc", lang)}
         </p>
 
@@ -1809,7 +1881,7 @@ function App() {
           <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 20px 0" }}>{cat.icon} {categoryLabel(cat, lang)}</h2>
 
           {cards.length === 0 && (
-            <p style={{ color: "#888", fontSize: 13, textAlign: "center", lineHeight: 1.5, margin: "0 0 20px 0" }}>
+            <p style={{ color: TEXT_3, fontSize: 13, textAlign: "center", lineHeight: 1.5, margin: "0 0 20px 0" }}>
               {t("pattern_empty", lang)}
             </p>
           )}
@@ -1843,7 +1915,7 @@ function App() {
             background: cards.length === 0 ? "#444" : `linear-gradient(135deg, ${cat.color}, ${cat.color}cc)`, color: "white",
             fontSize: 15, fontWeight: "bold", cursor: cards.length === 0 ? "not-allowed" : "pointer"
           }}>
-            {t("practicar_patrones", lang)}
+            <Lbl icon="play" size={16}>{noEmoji(t("practicar_patrones", lang))}</Lbl>
           </button>
         </div>
       </div>
@@ -1851,71 +1923,63 @@ function App() {
   }
 
   if (mode === "buildResults") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: FONT_UI }}>
-      <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
-        <div style={{ fontSize: 52, marginBottom: 16 }}>✏️</div>
-        <h2 style={{ color: "#4DD0E1", fontSize: 24, marginBottom: 4 }}>{t("ronda_frases_completada", lang)}</h2>
-        <p style={{ color: "#FFD09B", marginBottom: 32, fontSize: 14 }}>{buildDeck.length} {t("frases_construidas", lang)}</p>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32 }}>
-          <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 8px" }}>
-            <div style={{ fontSize: 28, fontWeight: "bold", color: "#4CAF50" }}>{buildStats.correct}</div>
-            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>{t("a_la_primera", lang)}</div>
-          </div>
-          <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 8px" }}>
-            <div style={{ fontSize: 28, fontWeight: "bold", color: "#F44336" }}>{buildStats.wrong}</div>
-            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>{t("con_errores", lang)}</div>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button onClick={startBuild} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: GRAD_BUILD, color: "white", fontSize: 15, fontWeight: "bold", cursor: "pointer" }}>
-            {t("otra_ronda", lang)}
-          </button>
-          <button onClick={startStudy} style={{ padding: "14px 0", borderRadius: 14, border: "2px solid rgba(255,107,53,0.4)", background: "transparent", color: "#FF9D3D", fontSize: 14, cursor: "pointer" }}>
-            {t("repasar_flashcards", lang)}
-          </button>
-          {dueCount > 0 && (
-            <button onClick={startReviewToday} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#999", fontSize: 13, cursor: "pointer" }}>
-              {tn("tienes_pendientes_hoy", lang, dueCount)}
-            </button>
-          )}
-          <button onClick={() => setMode("menu")} style={{ padding: "14px 0", borderRadius: 14, border: "none", background: "transparent", color: "#888", fontSize: 14, cursor: "pointer" }}>
-            {t("menu_principal", lang)}
-          </button>
-        </div>
-      </div>
-    </div>
+    <ResultsScreen
+      icon="build" title={t("ronda_frases_completada", lang)} titleColor="#4DD0E1"
+      subtitle={`${buildDeck.length} ${t("frases_construidas", lang)}`}
+      stats={[
+        { label: t("a_la_primera", lang), count: buildStats.correct, color: "#66BB6A" },
+        { label: t("con_errores", lang), count: buildStats.wrong, color: "#FF8A80" },
+      ]}
+      actions={[
+        { label: t("otra_ronda", lang), icon: "shuffle", onClick: startBuild, background: GRAD_BUILD, color: "white", fontSize: 15, bold: true },
+        { label: t("repasar_flashcards", lang), icon: "layers", onClick: startStudy, border: "1px solid rgba(255,107,53,0.5)", color: "#FF9D3D", fontSize: 14 },
+        dueCount > 0 && { label: tn("tienes_pendientes_hoy", lang, dueCount), icon: "calendar", onClick: startReviewToday, color: TEXT_3, fontSize: 13 },
+        { label: t("menu_principal", lang), icon: "home", onClick: () => setMode("menu"), color: TEXT_3, fontSize: 14 },
+      ]}
+    />
   );
+
+  const tallyStatus = (ids, map) => {
+    const c = { mastered: 0, learning: 0, new: 0 };
+    ids.forEach(id => { c[statusFor(id, map)]++; });
+    return c;
+  };
+  const buildCounts = tallyStatus(buildableCards.map(c => c.id), progress);
+  const vocabCounts = tallyStatus(vocabCards.map(c => c.id), progress);
+  const charCounts = tallyStatus(writableChars, charProgress);
 
   // Tab: Construir — elegir nivel y empezar
   if (mode === "buildHub") return (
-    <HubScreen title={t("construir_frases_title", lang)} titleColor="#4DD0E1" mode={mode} setMode={setMode} lang={lang}
+    <HubScreen title={t("construir_frases_title", lang)} icon="build" titleColor="#4DD0E1" mode={mode} setMode={setMode} lang={lang}
       description={t("construir_desc", lang)}>
-      <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 12, marginBottom: 14 }}>
+      <ProgressSummary title={t("prog_title_build", lang)} counts={buildCounts} lang={lang} />
+      <div style={{ background: "rgba(255,255,255,0.05)", border: CARD_BORDER, borderRadius: 18, padding: 14, marginBottom: 14 }}>
         <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
           {[
             { v: "easy", key: "nivel_facil" },
             { v: "medium", key: "nivel_medio" },
-            { v: "hard", label: "🔴 听写" },
+            { v: "hard", label: "听写" },
           ].map(lv => (
             <button key={lv.v} onClick={() => setBuilderLevel(lv.v)} style={{
-              flex: 1, padding: "7px 0", borderRadius: 10, border: `2px solid ${builderLevel === lv.v ? "#4DD0E1" : "rgba(255,255,255,0.15)"}`,
-              background: builderLevel === lv.v ? "rgba(77,208,225,0.15)" : "transparent",
-              color: builderLevel === lv.v ? "#4DD0E1" : "#888", fontSize: 11, fontWeight: builderLevel === lv.v ? "bold" : "normal",
+              flex: 1, minHeight: 40, padding: "8px 0", borderRadius: 12, border: `1px solid ${builderLevel === lv.v ? "#4DD0E1" : "rgba(255,255,255,0.15)"}`,
+              background: builderLevel === lv.v ? "rgba(77,208,225,0.16)" : "transparent",
+              color: builderLevel === lv.v ? "#4DD0E1" : TEXT_2, fontSize: 13, fontWeight: builderLevel === lv.v ? "bold" : "normal",
               cursor: "pointer", fontFamily: FONT_UI
             }}>
-              {lv.key ? t(lv.key, lang) : lv.label}
+              <Lbl gap={7}><LevelDot color={LEVEL_COLORS[lv.v]} />{lv.key ? noEmoji(t(lv.key, lang)) : lv.label}</Lbl>
             </button>
           ))}
         </div>
+        <p style={{ color: TEXT_3, fontSize: 12, lineHeight: 1.45, margin: "0 2px 12px" }}>
+          {t(builderLevel === "hard" ? "nivel_hard_desc" : builderLevel === "medium" ? "nivel_medio_desc" : "nivel_facil_desc", lang)}
+        </p>
         <button onClick={startBuild} disabled={buildableCards.length === 0} style={{
           width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
           background: buildableCards.length === 0 ? "#444" : GRAD_BUILD,
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: buildableCards.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
-          ✏️ {t("comenzar", lang)} · {buildableCards.length} {t("disponibles_suffix", lang)}
+          <Lbl icon="play" size={16}>{t("comenzar", lang)} · {buildableCards.length} {t("disponibles_suffix", lang)}</Lbl>
         </button>
       </div>
     </HubScreen>
@@ -1923,10 +1987,11 @@ function App() {
 
   // Tab: Escritura — practicar el orden de trazos de los caracteres
   if (mode === "writingHub") return (
-    <HubScreen title={t("escritura_title", lang)} titleColor="#C6501F" mode={mode} setMode={setMode} lang={lang}>
-      <p style={{ color: "#FFD09B", fontSize: 13, textAlign: "center", marginBottom: 12, lineHeight: 1.5 }}>
+    <HubScreen title={t("escritura_title", lang)} icon="writing" titleColor="#FF8A50" mode={mode} setMode={setMode} lang={lang}>
+      <p style={{ color: TEXT_2, fontSize: 13, textAlign: "center", marginBottom: 12, lineHeight: 1.5 }}>
         {t("escritura_desc", lang)}
       </p>
+      <ProgressSummary title={t("prog_title_chars", lang)} counts={charCounts} lang={lang} />
 
       <button onClick={() => setMode("settings")} style={{
         display: "block", margin: "0 auto 20px", background: "none", border: "none",
@@ -1941,7 +2006,7 @@ function App() {
           padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
           background: GRAD_PRIMARY, color: "white", cursor: "pointer", fontFamily: FONT_UI
         }}>
-          <span style={{ fontSize: 13, fontWeight: "bold" }}>{t("repasar_pendientes_hoy", lang)}</span>
+          <span style={{ fontSize: 13, fontWeight: "bold" }}><Lbl icon="calendar" size={16} gap={8}>{noEmoji(t("repasar_pendientes_hoy", lang))}</Lbl></span>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{writeDueChars.length} →</span>
         </button>
       )}
@@ -1954,11 +2019,11 @@ function App() {
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: writableChars.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
-          🖌️ {t("comenzar", lang)} · {writableChars.length} {t("caracteres_suffix", lang)}
+          <Lbl icon="play" size={16}>{t("comenzar", lang)} · {writableChars.length} {t("caracteres_suffix", lang)}</Lbl>
         </button>
       </div>
       {writableChars.length === 0 && (
-        <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
+        <p style={{ color: TEXT_3, fontSize: 12, textAlign: "center" }}>
           {t("selecciona_unidades_chars", lang)}
         </p>
       )}
@@ -1966,24 +2031,25 @@ function App() {
       <button onClick={() => { setMasteryKind("chars"); setMasteryFilter("all"); setMode("mastery"); }} style={{
         display: "block", width: "100%", marginTop: 14, padding: "10px 0", borderRadius: 12,
         border: "1px solid rgba(255,255,255,0.15)", background: "none",
-        color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: FONT_UI
+        color: TEXT_2, fontSize: 13, cursor: "pointer", fontFamily: FONT_UI
       }}>
-        {t("ver_que_caracteres_domino", lang)}
+        <Lbl icon="chart" size={16}>{noEmoji(t("ver_que_caracteres_domino", lang))}</Lbl>
       </button>
     </HubScreen>
   );
 
   // Tab: Vocabulario — solo los términos, con su ejemplo como contexto
   if (mode === "vocabHub") return (
-    <HubScreen title={t("vocab_title", lang)} titleColor="#00ACC1" mode={mode} setMode={setMode} lang={lang}
+    <HubScreen title={t("vocab_title", lang)} icon="vocab" titleColor="#26C6DA" mode={mode} setMode={setMode} lang={lang}
       description={t("vocab_desc", lang)}>
+      <ProgressSummary title={t("prog_title_vocab", lang)} counts={vocabCounts} lang={lang} />
       {vocabDueCards.length > 0 && (
         <button onClick={() => startVocab(true)} style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
           background: GRAD_BUILD, color: "white", cursor: "pointer", fontFamily: FONT_UI
         }}>
-          <span style={{ fontSize: 13, fontWeight: "bold" }}>{t("repasar_pendientes_hoy", lang)}</span>
+          <span style={{ fontSize: 13, fontWeight: "bold" }}><Lbl icon="calendar" size={16} gap={8}>{noEmoji(t("repasar_pendientes_hoy", lang))}</Lbl></span>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{vocabDueCards.length} →</span>
         </button>
       )}
@@ -1994,11 +2060,11 @@ function App() {
           color: "white", fontSize: 15, fontWeight: "bold",
           cursor: vocabCards.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
-          🔤 {t("comenzar", lang)} · {vocabCards.length} {t("terminos_suffix", lang)}
+          <Lbl icon="play" size={16}>{t("comenzar", lang)} · {vocabCards.length} {t("terminos_suffix", lang)}</Lbl>
         </button>
       </div>
       {vocabCards.length === 0 && (
-        <p style={{ color: "#888", fontSize: 12, textAlign: "center" }}>
+        <p style={{ color: TEXT_3, fontSize: 12, textAlign: "center" }}>
           {t("vocab_empty", lang)}
         </p>
       )}
@@ -2006,9 +2072,9 @@ function App() {
       <button onClick={() => { setMasteryKind("vocab"); setMasteryFilter("all"); setMode("mastery"); }} style={{
         display: "block", width: "100%", marginTop: 14, padding: "10px 0", borderRadius: 12,
         border: "1px solid rgba(255,255,255,0.15)", background: "none",
-        color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: FONT_UI
+        color: TEXT_2, fontSize: 13, cursor: "pointer", fontFamily: FONT_UI
       }}>
-        {t("ver_que_palabras_domino", lang)}
+        <Lbl icon="chart" size={16}>{noEmoji(t("ver_que_palabras_domino", lang))}</Lbl>
       </button>
     </HubScreen>
   );
@@ -2036,21 +2102,21 @@ function App() {
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <button onClick={() => setMode(isVocab ? "vocabHub" : "writingHub")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
-            <span style={{ color: "#FFD09B", fontSize: 13 }}>{selectedUnits.length} {t("unidades_suffix", lang)}</span>
+            <span style={{ color: TEXT_2, fontSize: 13 }}>{selectedUnits.length} {t("unidades_suffix", lang)}</span>
           </div>
-          <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 16px 0" }}>📊 {isVocab ? t("mastery_title_vocab", lang) : t("mastery_title_chars", lang)}</h2>
+          <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 16px 0" }}><Lbl icon="chart" size={22}>{isVocab ? t("mastery_title_vocab", lang) : t("mastery_title_chars", lang)}</Lbl></h2>
 
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <button onClick={() => { setMasteryKind("vocab"); setMasteryFilter("all"); }} style={{
               flex: 1, padding: "8px 0", borderRadius: 10, border: `2px solid ${isVocab ? "#00ACC1" : "rgba(255,255,255,0.15)"}`,
               background: isVocab ? "rgba(0,172,193,0.15)" : "transparent", color: isVocab ? "#4DD0E1" : "#888",
               fontSize: 13, fontWeight: isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: FONT_UI
-            }}>{t("tab_palabras", lang)}</button>
+            }}><Lbl icon="vocab" size={16} gap={6}>{noEmoji(t("tab_palabras", lang))}</Lbl></button>
             <button onClick={() => { setMasteryKind("chars"); setMasteryFilter("all"); }} style={{
               flex: 1, padding: "8px 0", borderRadius: 10, border: `2px solid ${!isVocab ? "#C6501F" : "rgba(255,255,255,0.15)"}`,
               background: !isVocab ? "rgba(198,80,31,0.15)" : "transparent", color: !isVocab ? "#FF9D3D" : "#888",
               fontSize: 13, fontWeight: !isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: FONT_UI
-            }}>{t("tab_caracteres", lang)}</button>
+            }}><Lbl icon="writing" size={16} gap={6}>{noEmoji(t("tab_caracteres", lang))}</Lbl></button>
           </div>
 
           <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
@@ -2069,12 +2135,12 @@ function App() {
           </div>
 
           {items.length === 0 && (
-            <p style={{ color: "#888", fontSize: 13, textAlign: "center", marginTop: 20 }}>
+            <p style={{ color: TEXT_3, fontSize: 13, textAlign: "center", marginTop: 20 }}>
               {isVocab ? t("mastery_empty_select_vocab", lang) : t("mastery_empty_select_chars", lang)}
             </p>
           )}
           {items.length > 0 && filtered.length === 0 && (
-            <p style={{ color: "#888", fontSize: 13, textAlign: "center", marginTop: 20 }}>
+            <p style={{ color: TEXT_3, fontSize: 13, textAlign: "center", marginTop: 20 }}>
               {t("mastery_empty_filter", lang)}
             </p>
           )}
@@ -2106,7 +2172,7 @@ function App() {
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
-            <span style={{ color: "#FFD09B", fontSize: 13 }}>{writeIdx + 1} / {writeDeck.length}</span>
+            <span style={{ color: TEXT_2, fontSize: 13 }}>{writeIdx + 1} / {writeDeck.length}</span>
             <span style={{ color: "#C6501F", fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
               ✅ {writeStats.done}
             </span>
@@ -2126,7 +2192,7 @@ function App() {
             </div>
 
             {writeShowPinyin && CHAR_PINYIN[writeChar] && (
-              <p style={{ color: "#FFD09B", fontSize: 18, fontStyle: "italic", marginBottom: 10, marginTop: -4 }}>
+              <p style={{ color: TEXT_2, fontSize: 18, fontStyle: "italic", marginBottom: 10, marginTop: -4 }}>
                 {CHAR_PINYIN[writeChar]}
               </p>
             )}
@@ -2159,7 +2225,7 @@ function App() {
                 padding: "10px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
                 background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
               }}>
-                {t("reiniciar", lang)}
+                <Lbl icon="repeat" size={15} gap={6}>{noEmoji(t("reiniciar", lang))}</Lbl>
               </button>
               <button onClick={() => {
                 if (writeWriterRef.current) writeWriterRef.current.animateCharacter();
@@ -2167,7 +2233,7 @@ function App() {
                 padding: "10px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
                 background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
               }}>
-                {t("pista", lang)}
+                <Lbl icon="bulb" size={15} gap={6}>{noEmoji(t("pista", lang))}</Lbl>
               </button>
               <button onClick={() => setWriteShowPinyin(s => !s)} style={{
                 padding: "10px 16px", borderRadius: 14, border: `1px solid ${writeShowPinyin ? "rgba(255,157,61,0.5)" : "rgba(255,255,255,0.2)"}`,
@@ -2199,7 +2265,7 @@ function App() {
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
-            <span style={{ color: "#FFD09B", fontSize: 13 }}>{mixedIdx + 1} / {mixedQueue.length}</span>
+            <span style={{ color: TEXT_2, fontSize: 13 }}>{mixedIdx + 1} / {mixedQueue.length}</span>
             <span style={{ color: mixedColor.accent, fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
               {t("sesion_mixta_badge", lang)}
             </span>
@@ -2281,9 +2347,9 @@ function App() {
           {/* Top bar */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
-            <span style={{ color: "#FFD09B", fontSize: 13 }}>{buildIdx + 1} / {buildDeck.length}</span>
-            <span style={{ color: color2.accent, fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
-              {isHard ? "🔴 听写" : isMedium ? t("nivel_medio", lang) : t("nivel_facil", lang)}
+            <span style={{ color: TEXT_2, fontSize: 13 }}>{buildIdx + 1} / {buildDeck.length}</span>
+            <span style={{ color: TEXT_2, fontSize: 12, background: "rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: 20, fontWeight: "bold" }}>
+              <Lbl gap={6}><LevelDot color={LEVEL_COLORS[builderLevel]} />{isHard ? "听写" : isMedium ? noEmoji(t("nivel_medio", lang)) : noEmoji(t("nivel_facil", lang))}</Lbl>
             </span>
           </div>
 
@@ -2306,7 +2372,8 @@ function App() {
               <textarea
                 value={typedAnswer}
                 onChange={e => setTypedAnswer(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!resolved) checkHardAnswer(); } }}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); if (!resolved) checkHardAnswer(); } }}
+                autoFocus autoCapitalize="off" autoCorrect="off" spellCheck={false} lang="zh-CN" enterKeyHint="done"
                 placeholder={t("dictado_placeholder", lang)}
                 disabled={wasCorrect}
                 style={{
@@ -2323,7 +2390,7 @@ function App() {
                   <p style={{ textAlign: "center", color: "#F44336", fontSize: 14, marginBottom: 8 }}>{t("no_coincide", lang)}</p>
                   <p style={{ textAlign: "center", fontSize: 26, letterSpacing: 2 }}>
                     {hardDiff.map((d, i) => (
-                      <span key={i} style={{ color: d.ok ? "#4CAF50" : "#F44336" }}>{d.ch}</span>
+                      <span key={i} style={{ color: d.ok ? "#66BB6A" : "#FF8A80" }}>{d.ch}</span>
                     ))}
                   </p>
                 </div>
@@ -2386,7 +2453,7 @@ function App() {
                   <button key={tile.uid} onClick={() => tapPoolTile(tile)} style={{
                     fontSize: 26, padding: "8px 14px", borderRadius: 10,
                     border: `2px solid ${color2.accent}66`, background: color2.bg,
-                    color: "#1a0a00", cursor: "pointer", fontFamily: FONT_UI, fontWeight: "bold"
+                    color: "#12151C", cursor: "pointer", fontFamily: FONT_UI, fontWeight: "bold"
                   }}>
                     {tile.ch}
                   </button>
@@ -2431,7 +2498,7 @@ function App() {
                 flex: 1, padding: "12px 0", borderRadius: 14, border: "1px solid rgba(255,255,255,0.2)",
                 background: "rgba(255,255,255,0.06)", color: "#aaa", fontSize: 13, cursor: "pointer"
               }}>
-                {t("ver_respuesta", lang)}
+                <Lbl icon="eye" size={16}>{noEmoji(t("ver_respuesta", lang))}</Lbl>
               </button>
             ) : (
               <button onClick={nextBuildCard} style={{
@@ -2456,9 +2523,9 @@ function App() {
         {/* Top bar */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
-          <span style={{ color: "#FFD09B", fontSize: 13 }}>{currentIdx + 1} / {deck.length}</span>
-          <span style={{ color: color.accent, fontSize: 12, background: "rgba(255,255,255,0.1)", padding: "3px 10px", borderRadius: 20, fontWeight: "bold" }}>
-            {card.unit <= 10 || card.unit === 30 ? displayUnitName(card, lang) : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : displayUnitName(card, lang); })()}
+          <span style={{ color: TEXT_2, fontSize: 13 }}>{currentIdx + 1} / {deck.length}</span>
+          <span style={{ color: TEXT_2, fontSize: 12, background: "rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: 20, fontWeight: "bold" }}>
+            <Lbl gap={6}><LevelDot color={color.light || color.accent} />{card.unit <= 10 || card.unit === 30 ? displayUnitName(card, lang) : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : displayUnitName(card, lang); })()}</Lbl>
           </span>
         </div>
 
@@ -2526,10 +2593,10 @@ function App() {
                   <>
                     <div style={{ fontSize: 52, marginBottom: 10 }}>🔊</div>
                     <SpeakButton text={card.zh} speak={speak} speaking={speaking} variant="front" label={t("escuchar_de_nuevo", lang)} error={speechError} lang={lang} />
-                    <p style={{ color: "#888", fontSize: 12, textAlign: "center", margin: 0 }}>{t("listen_hint", lang)}</p>
+                    <p style={{ color: TEXT_3, fontSize: 12, textAlign: "center", margin: 0 }}>{t("listen_hint", lang)}</p>
                   </>
                 ) : (
-                  <p style={{ color: "#888", fontSize: 13, textAlign: "center", margin: 0 }}>{t("sin_audio", lang)}</p>
+                  <p style={{ color: TEXT_3, fontSize: 13, textAlign: "center", margin: 0 }}>{t("sin_audio", lang)}</p>
                 )
               )}
               <div style={{ marginTop: 16, color: TEXT_3, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>

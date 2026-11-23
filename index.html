@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="长城汉语">
-<meta name="theme-color" content="#1a0a00">
+<meta name="theme-color" content="#0C0E13">
 <meta name="color-scheme" content="dark">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" href="./icon-192.png">
@@ -15,9 +15,9 @@
 <title>长城汉语 · Flashcards</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html { background: #1a0a00; -webkit-text-size-adjust: 100%; }
+  html { background: #0C0E13; -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; padding: 0; background: #1a0a00; color: #fff;
+    margin: 0; padding: 0; background: #0C0E13; color: #fff;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     overscroll-behavior-y: none; /* sin rebote blanco al llegar al borde */
     -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; /* se siente app, no página */
@@ -48,7 +48,7 @@
   }
 
   /* Pantalla de carga mientras Babel compila la app (evita el "pantallazo" vacío) */
-  .gwc-splash { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: linear-gradient(135deg,#1a0a00,#3d1a00,#1a0a00); }
+  .gwc-splash { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(120% 60% at 50% -10%, #212734 0%, #12151C 55%, #0C0E13 100%); }
   .gwc-splash b { font-size: 44px; letter-spacing: 4px; color: #FF9D3D; font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif; }
   .gwc-splash i { width: 42px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.15); overflow: hidden; position: relative; }
   .gwc-splash i::after { content: ""; position: absolute; inset: 0; width: 40%; background: #FF6B35; border-radius: 2px; animation: gwcLoad 1s ease-in-out infinite; }
