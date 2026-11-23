@@ -52,6 +52,7 @@ const UI_STRINGS = {
   dir_listen: { es: "🔊 Solo audio (producción)", en: "🔊 Audio only (production)", fr: "🔊 Audio seulement (production)" },
   dir_listen_hint: { es: '"Solo audio" te reta a recordar el pinyin y el significado antes de revelar — sin ver el carácter primero.', en: '"Audio only" challenges you to recall the pinyin and meaning before revealing — without seeing the character first.', fr: '« Audio seulement » vous met au défi de retrouver le pinyin et le sens avant de révéler — sans voir le caractère d\'abord.' },
   toggle_audio: { es: "🔊 Reproducir audio al revelar", en: "🔊 Play audio on reveal", fr: "🔊 Lire l'audio à la révélation" },
+  toggle_haptics: { es: "📳 Vibración al responder", en: "📳 Vibrate on answer", fr: "📳 Vibration à la réponse" },
   toggle_pinyin: { es: "拼 Mostrar pinyin al revelar", en: "拼 Show pinyin on reveal", fr: "拼 Afficher le pinyin à la révélation" },
   limite_diario_title: { es: "Límite diario de repaso", en: "Daily review limit", fr: "Limite quotidienne de révision" },
   limite_diario_hint: { es: "Evita repasos interminables en un solo día", en: "Avoids endless reviews in a single day", fr: "Évite des révisions interminables en une seule journée" },
@@ -444,10 +445,11 @@ function shuffle(array) {
 // ---------- Preferencias guardadas (unidades, dirección, audio, pinyin, nivel) ----------
 const PREFS_KEY = "gwc_prefs_v1";
 const DEFAULT_PREFS = {
-  selectedUnits: [1,2,3,4,5,6,7,8,9,10,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],
+  selectedUnits: [1,2,3,4,5,6,7,8,9,10,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],
   studyDir: "es→zh", // identificador interno, no se traduce — "es→zh" sigue significando "idioma de la UI → chino"
   showPinyin: true,
   autoPlay: true,
+  haptics: true,
   builderLevel: "easy",
   dailyCap: 0, // 0 = sin límite de tarjetas de repaso por día
   lang: "es", // "es" | "en" | "fr" — idioma de la interfaz y del significado/ejemplo de las tarjetas
@@ -616,6 +618,14 @@ function bookInfo(unit) {
 }
 
 const SCREEN_BG = "linear-gradient(135deg, #1a0a00, #3d1a00, #1a0a00)";
+const FONT_UI = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif";
+
+// Vibración corta como respuesta táctil (solo Android/Chrome; iOS Safari no la soporta).
+let HAPTICS_ON = true;
+function haptic(pattern) {
+  if (!HAPTICS_ON || typeof navigator === "undefined" || !navigator.vibrate) return;
+  try { navigator.vibrate(pattern); } catch (e) {}
+}
 
 // ---------- Modo: Patrones gramaticales ----------
 // Organiza las 📐 tarjetas de gramática por TIPO de patrón, cruzando unidades.
@@ -650,8 +660,8 @@ function ProgressRing({ pct, size = 84, color = "#FF9D3D", lang }) {
         position: "absolute", top: 0, left: 0, width: size, height: size,
         display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column"
       }}>
-        <span style={{ color: "white", fontSize: 20, fontWeight: "bold", fontFamily: "sans-serif" }}>{pct}%</span>
-        <span style={{ color: "#999", fontSize: 9, fontFamily: "sans-serif" }}>{t("dominado", lang)}</span>
+        <span style={{ color: "white", fontSize: 20, fontWeight: "bold", fontFamily: FONT_UI }}>{pct}%</span>
+        <span style={{ color: "#999", fontSize: 9, fontFamily: FONT_UI }}>{t("dominado", lang)}</span>
       </div>
     </div>
   );
@@ -716,7 +726,7 @@ function TabBar({ activeMode, setMode, lang }) {
               display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
               background: "none", border: "none", cursor: "pointer",
               padding: "4px 6px", color: active ? "#FF9D3D" : "rgba(255,255,255,0.45)",
-              fontSize: 10, fontFamily: "sans-serif", fontWeight: 700,
+              fontSize: 10, fontFamily: FONT_UI, fontWeight: 700,
               transition: "color 0.15s ease, transform 0.1s ease"
             }}>
               <span style={{ fontSize: 20, lineHeight: 1, filter: active ? "none" : "grayscale(0.5) opacity(0.75)" }}>{tab.icon}</span>
@@ -805,7 +815,7 @@ function RevealButton({ onClick, children, color = "#FF9D3D" }) {
 // título centrado + descripción opcional + contenido propio + tabbar.
 function HubScreen({ title, titleColor, description, mode, setMode, lang, children }) {
   return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
           <span style={{ flex: 1 }} />
@@ -830,7 +840,7 @@ function HubScreen({ title, titleColor, description, mode, setMode, lang, childr
 // emoji + título + subtítulo + grilla de stats + lista de botones de acción.
 function ResultsScreen({ emoji, title, titleColor, subtitle, stats, actions }) {
   return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 52, marginBottom: 16 }}>{emoji}</div>
         <h2 style={{ color: titleColor, fontSize: 24, marginBottom: 4 }}>{title}</h2>
@@ -885,6 +895,8 @@ function App() {
   const [dragging, setDragging] = useState(false);
   const dragStartXRef = useRef(null);
   const [autoPlay, setAutoPlay] = useState(initialPrefs.autoPlay);
+  const [haptics, setHaptics] = useState(initialPrefs.haptics);
+  HAPTICS_ON = haptics;
   const [progress, setProgress] = useState(() => loadProgress());
   const [charProgress, setCharProgress] = useState(() => loadProgress(CHAR_STORAGE_KEY));
   const [streak, setStreak] = useState(() => loadStreak());
@@ -997,8 +1009,19 @@ function App() {
 
   // Guarda preferencias automáticamente cuando cambian (va aquí porque necesita builderLevel ya declarado)
   useEffect(() => {
-    savePrefs({ selectedUnits, studyDir, showPinyin, autoPlay, builderLevel, dailyCap, lang });
-  }, [selectedUnits, studyDir, showPinyin, autoPlay, builderLevel, dailyCap, lang]);
+    savePrefs({ selectedUnits, studyDir, showPinyin, autoPlay, haptics, builderLevel, dailyCap, lang });
+  }, [selectedUnits, studyDir, showPinyin, autoPlay, haptics, builderLevel, dailyCap, lang]);
+
+  // Transición suave al cambiar de pantalla (solo el contenido; la barra inferior fija no se mueve).
+  useEffect(() => {
+    const rootEl = document.getElementById("root");
+    const el = rootEl && rootEl.firstElementChild && rootEl.firstElementChild.firstElementChild;
+    if (!el || !el.animate || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    el.animate(
+      [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }],
+      { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
+    );
+  }, [mode]);
   const [buildDeck, setBuildDeck] = useState([]);
   const [buildIdx, setBuildIdx] = useState(0);
   const [pool, setPool] = useState([]);
@@ -1165,6 +1188,7 @@ function App() {
   const checkMediumAnswer = () => {
     const built = answer.map(t => t.ch).join("");
     const correct = built === buildCard.zh;
+    haptic(correct ? 15 : [25, 35, 25]);
     setBuildResult(correct ? "correct" : "wrong");
     registerResult(correct);
   };
@@ -1186,6 +1210,7 @@ function App() {
     if (mode === "build" && builderLevel === "easy" && buildCard && pool.length === 0 && answer.length > 0 && buildResult === null) {
       const built = answer.map(t => t.ch).join("");
       const correct = built === buildCard.zh;
+      haptic(correct ? 15 : [25, 35, 25]);
       setBuildResult(correct ? "correct" : "wrong");
       registerResult(correct);
     }
@@ -1277,6 +1302,7 @@ function App() {
   const isReference = isPatternCard(card);
 
   const rate = (r) => {
+    haptic(r === RATING.know ? 15 : r === RATING.almost ? 10 : [25, 35, 25]);
     setRatings(prev => ({ ...prev, [card.id]: r }));
     setProgress(prev => {
       const updated = { ...prev, [card.id]: computeNextEntry(prev[card.id], r) };
@@ -1365,7 +1391,7 @@ function App() {
   const back_es = cardText(card, "es", lang);
 
   if (mode === "menu") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
@@ -1379,11 +1405,11 @@ function App() {
             <ProgressRing pct={masteredPct} lang={lang} />
             <div style={{ flex: 1 }}>
               {streak.current > 0 && (
-                <p style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", margin: "0 0 6px 0", fontFamily: "sans-serif" }}>
+                <p style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", margin: "0 0 6px 0", fontFamily: FONT_UI }}>
                   🔥 {streak.current} {streak.current === 1 ? t("dia_seguido", lang) : t("dias_seguidos", lang)}
                 </p>
               )}
-              <div style={{ display: "flex", gap: 12, fontSize: 11, fontFamily: "sans-serif", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 12, fontSize: 11, fontFamily: FONT_UI, flexWrap: "wrap" }}>
                 <span style={{ color: "#888" }}>🆕 {newCount}</span>
                 <span style={{ color: "#FF9D3D" }}>📖 {learningCount}</span>
                 <span style={{ color: "#4CAF50" }}>⭐ {masteredCount}</span>
@@ -1392,8 +1418,8 @@ function App() {
           </div>
         ) : (
           <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 18, padding: "18px 16px", marginBottom: 14, textAlign: "center" }}>
-            <p style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", margin: "0 0 4px 0", fontFamily: "sans-serif" }}>{t("bienvenido_title", lang)}</p>
-            <p style={{ color: "#aaa", fontSize: 12, margin: 0, fontFamily: "sans-serif" }}>{t("bienvenido_hint", lang)}</p>
+            <p style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", margin: "0 0 4px 0", fontFamily: FONT_UI }}>{t("bienvenido_title", lang)}</p>
+            <p style={{ color: "#aaa", fontSize: 12, margin: 0, fontFamily: FONT_UI }}>{t("bienvenido_hint", lang)}</p>
           </div>
         )}
 
@@ -1405,27 +1431,27 @@ function App() {
         }}>
           {dueCount > 0 ? (
             <>
-              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, margin: "0 0 2px 0", fontFamily: "sans-serif" }}>{t("repaso_hoy_title", lang)}</p>
-              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, margin: "0 0 8px 0", fontFamily: "sans-serif" }}>
+              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, margin: "0 0 2px 0", fontFamily: FONT_UI }}>{t("repaso_hoy_title", lang)}</p>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, margin: "0 0 8px 0", fontFamily: FONT_UI }}>
                 {t("repaso_hoy_hint", lang)}
               </p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <span style={{ color: "white", fontSize: 22, fontWeight: "bold", fontFamily: "sans-serif" }}>{dueCount} {t("tarjetas_suffix", lang)}</span>
-                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, marginTop: 2, fontFamily: "sans-serif" }}>
+                  <span style={{ color: "white", fontSize: 22, fontWeight: "bold", fontFamily: FONT_UI }}>{dueCount} {t("tarjetas_suffix", lang)}</span>
+                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, marginTop: 2, fontFamily: FONT_UI }}>
                     {[newDueCount > 0 && `🆕 ${newDueCount} ${t("nuevas_suffix", lang)}`, reviewDueCount > 0 && `🔁 ${reviewDueCount} ${t("repaso_suffix", lang)}`].filter(Boolean).join(" · ")}
                   </div>
                 </div>
                 <button onClick={startReviewToday} style={{
                   background: "white", color: "#FF6B35", border: "none", borderRadius: 12,
-                  padding: "10px 20px", fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "sans-serif"
+                  padding: "10px 20px", fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: FONT_UI
                 }}>
                   {t("repasar_btn", lang)}
                 </button>
               </div>
             </>
           ) : (
-            <p style={{ color: "#4CAF50", fontSize: 14, margin: 0, fontFamily: "sans-serif", textAlign: "center" }}>
+            <p style={{ color: "#4CAF50", fontSize: 14, margin: 0, fontFamily: FONT_UI, textAlign: "center" }}>
               {t("repaso_completo", lang)}
             </p>
           )}
@@ -1436,11 +1462,11 @@ function App() {
           width: "100%", padding: "18px 0", borderRadius: 16, border: "none", marginBottom: 4,
           background: selectedUnits.length === 0 ? "#444" : "linear-gradient(135deg, #FF6B35, #FF9D3D)",
           color: "white", fontSize: 17, fontWeight: "bold", cursor: selectedUnits.length === 0 ? "not-allowed" : "pointer",
-          fontFamily: "sans-serif", letterSpacing: 0.5, boxShadow: "0 4px 20px rgba(255,107,53,0.35)"
+          fontFamily: FONT_UI, letterSpacing: 0.5, boxShadow: "0 4px 20px rgba(255,107,53,0.35)"
         }}>
           {t("flashcards_btn", lang)} · {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_suffix", lang)}
         </button>
-        <p style={{ textAlign: "center", color: "#666", fontSize: 11, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>
+        <p style={{ textAlign: "center", color: "#666", fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
           {hasHistory
             ? `${studyDir === "es→zh" ? t("dir_short_prompt_zh", lang) : t("dir_short_zh_prompt", lang)} · ${selectedUnits.length} ${t("cambiar_en_opciones", lang)}`
             : t("home_subtitle_welcome", lang)}
@@ -1451,7 +1477,7 @@ function App() {
           <button onClick={() => setMode("buildHub")} style={{
             padding: "14px 8px", borderRadius: 16, border: "none",
             background: "linear-gradient(135deg, #00838F, #4DD0E1)",
-            color: "white", cursor: "pointer", fontFamily: "sans-serif",
+            color: "white", cursor: "pointer", fontFamily: FONT_UI,
             display: "flex", flexDirection: "column", alignItems: "center", gap: 4
           }}>
             <span style={{ fontSize: 22 }}>✏️</span>
@@ -1462,7 +1488,7 @@ function App() {
           <button onClick={() => setMode("patterns")} style={{
             padding: "14px 8px", borderRadius: 16,
             border: "2px solid rgba(255,157,61,0.4)", background: "rgba(255,157,61,0.08)",
-            color: "#FF9D3D", cursor: "pointer", fontFamily: "sans-serif",
+            color: "#FF9D3D", cursor: "pointer", fontFamily: FONT_UI,
             display: "flex", flexDirection: "column", alignItems: "center", gap: 4
           }}>
             <span style={{ fontSize: 22 }}>📐</span>
@@ -1473,7 +1499,7 @@ function App() {
           <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length === 0} style={{
             gridColumn: "1 / -1", padding: "12px 8px", borderRadius: 16, border: "2px solid rgba(123,31,162,0.4)",
             background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
-            cursor: "pointer", fontFamily: "sans-serif"
+            cursor: "pointer", fontFamily: FONT_UI
           }}>
             {t("sesion_mixta", lang)}
           </button>
@@ -1485,15 +1511,15 @@ function App() {
 
   // Pantalla de opciones: dirección, audio, pinyin, selector de unidades, reiniciar progreso
   if (mode === "settings") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "'Georgia', serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 500, width: "100%" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", fontFamily: "sans-serif" }}>{t("opciones_title", lang)}</span>
+          <span style={{ color: "#FF9D3D", fontSize: 15, fontWeight: "bold", fontFamily: FONT_UI }}>{t("opciones_title", lang)}</span>
         </div>
 
         {/* Idioma */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>{t("idioma_title", lang)}</p>
+          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("idioma_title", lang)}</p>
           <div style={{ display: "flex", gap: 8 }}>
             {[
               { v: "es", label: "🇲🇽 Español" },
@@ -1505,7 +1531,7 @@ function App() {
                 borderColor: lang === l.v ? "#FF6B35" : "rgba(255,255,255,0.2)",
                 background: lang === l.v ? "rgba(255,107,53,0.2)" : "transparent",
                 color: lang === l.v ? "#FF9D3D" : "#aaa",
-                cursor: "pointer", fontFamily: "sans-serif", fontSize: 13, fontWeight: lang === l.v ? "bold" : "normal"
+                cursor: "pointer", fontFamily: FONT_UI, fontSize: 13, fontWeight: lang === l.v ? "bold" : "normal"
               }}>
                 {l.label}
               </button>
@@ -1515,7 +1541,7 @@ function App() {
 
         {/* Direction */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>{t("direccion_title", lang)}</p>
+          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("direccion_title", lang)}</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
               { v: "es→zh", key: "dir_prompt_zh" },
@@ -1527,13 +1553,13 @@ function App() {
                 borderColor: studyDir === d.v ? "#FF6B35" : "rgba(255,255,255,0.2)",
                 background: studyDir === d.v ? "rgba(255,107,53,0.2)" : "transparent",
                 color: studyDir === d.v ? "#FF9D3D" : "#aaa",
-                cursor: "pointer", fontFamily: "sans-serif", fontSize: 12, fontWeight: studyDir === d.v ? "bold" : "normal"
+                cursor: "pointer", fontFamily: FONT_UI, fontSize: 12, fontWeight: studyDir === d.v ? "bold" : "normal"
               }}>
                 {t(d.key, lang)}
               </button>
             ))}
           </div>
-          <p style={{ color: "#888", fontSize: 11, margin: "8px 0 0 0", fontFamily: "sans-serif" }}>
+          <p style={{ color: "#888", fontSize: 11, margin: "8px 0 0 0", fontFamily: FONT_UI }}>
             {t("dir_listen_hint", lang)}
           </p>
         </div>
@@ -1542,9 +1568,10 @@ function App() {
         {[
           { key: "toggle_audio", val: autoPlay, set: setAutoPlay },
           { key: "toggle_pinyin", val: showPinyin, set: setShowPinyin },
+          { key: "toggle_haptics", val: haptics, set: setHaptics },
         ].map(toggle => (
           <div key={toggle.key} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "12px 16px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "#FFD09B", fontSize: 13, fontFamily: "sans-serif" }}>{t(toggle.key, lang)}</span>
+            <span style={{ color: "#FFD09B", fontSize: 13, fontFamily: FONT_UI }}>{t(toggle.key, lang)}</span>
             <div onClick={() => toggle.set(p => !p)} style={{
               width: 44, height: 24, borderRadius: 12, background: toggle.val ? "#FF6B35" : "#555",
               cursor: "pointer", position: "relative", transition: "background 0.3s"
@@ -1558,8 +1585,8 @@ function App() {
         ))}
         {/* Límite diario de repaso */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 4px 0", fontFamily: "sans-serif" }}>{t("limite_diario_title", lang)}</p>
-          <p style={{ color: "#888", fontSize: 11, margin: "0 0 10px 0", fontFamily: "sans-serif" }}>{t("limite_diario_hint", lang)}</p>
+          <p style={{ color: "#FFD09B", fontSize: 13, margin: "0 0 4px 0", fontFamily: FONT_UI }}>{t("limite_diario_title", lang)}</p>
+          <p style={{ color: "#888", fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>{t("limite_diario_hint", lang)}</p>
           <div style={{ display: "flex", gap: 8 }}>
             {[0, 20, 40, 60].map(n => (
               <button key={n} onClick={() => setDailyCap(n)} style={{
@@ -1567,7 +1594,7 @@ function App() {
                 borderColor: dailyCap === n ? "#FF6B35" : "rgba(255,255,255,0.2)",
                 background: dailyCap === n ? "rgba(255,107,53,0.2)" : "transparent",
                 color: dailyCap === n ? "#FF9D3D" : "#aaa",
-                cursor: "pointer", fontFamily: "sans-serif", fontSize: 13, fontWeight: dailyCap === n ? "bold" : "normal"
+                cursor: "pointer", fontFamily: FONT_UI, fontSize: 13, fontWeight: dailyCap === n ? "bold" : "normal"
               }}>
                 {n === 0 ? t("sin_limite", lang) : n}
               </button>
@@ -1579,15 +1606,15 @@ function App() {
         {/* Unit selector con % de dominio */}
         <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <p style={{ color: "#FFD09B", fontSize: 13, margin: 0, fontFamily: "sans-serif" }}>{t("seleccionar_unidades", lang)}</p>
+            <p style={{ color: "#FFD09B", fontSize: 13, margin: 0, fontFamily: FONT_UI }}>{t("seleccionar_unidades", lang)}</p>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setSelectedUnits([...units])} style={{ color: "#FF9D3D", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: "sans-serif" }}>{t("todas", lang)}</button>
-              <button onClick={() => setSelectedUnits([])} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: "sans-serif" }}>{t("ninguna", lang)}</button>
+              <button onClick={() => setSelectedUnits([...units])} style={{ color: "#FF9D3D", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: FONT_UI }}>{t("todas", lang)}</button>
+              <button onClick={() => setSelectedUnits([])} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontFamily: FONT_UI }}>{t("ninguna", lang)}</button>
             </div>
           </div>
 
           {/* Book 1 - Textbook units 1-10 */}
-          <p style={{ color: "#FF9D3D", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>{t("libro1_unidades", lang)}</p>
+          <p style={{ color: "#FF9D3D", fontSize: 11, margin: "0 0 6px 0", fontFamily: FONT_UI, fontWeight: "bold", letterSpacing: 1 }}>{t("libro1_unidades", lang)}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginBottom: 12 }}>
             {units.filter(u => bookInfo(u)?.book === 1).map(u => {
               const uc = UNIT_COLORS[u];
@@ -1598,7 +1625,7 @@ function App() {
                   padding: "8px 4px", borderRadius: 10, border: `2px solid ${sel ? uc.accent : "rgba(255,255,255,0.1)"}`,
                   background: sel ? uc.accent : "transparent",
                   color: sel ? "white" : "#888", cursor: "pointer", fontSize: 10,
-                  fontFamily: "sans-serif", fontWeight: sel ? "bold" : "normal",
+                  fontFamily: FONT_UI, fontWeight: sel ? "bold" : "normal",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2
                 }}>
                   <span style={{ fontSize: 12 }}>U{bookInfo(u).num}</span>
@@ -1609,7 +1636,7 @@ function App() {
           </div>
 
           {/* Book 2 */}
-          <p style={{ color: "#00838F", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>{t("libro2", lang)}</p>
+          <p style={{ color: "#00838F", fontSize: 11, margin: "0 0 6px 0", fontFamily: FONT_UI, fontWeight: "bold", letterSpacing: 1 }}>{t("libro2", lang)}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginBottom: 12 }}>
             {units.filter(u => bookInfo(u)?.book === 2).map(u => {
               const uc = UNIT_COLORS[u];
@@ -1620,7 +1647,7 @@ function App() {
                   padding: "8px 4px", borderRadius: 10, border: `2px solid ${sel ? uc.accent : "rgba(255,255,255,0.1)"}`,
                   background: sel ? uc.accent : "transparent",
                   color: sel ? "white" : "#888", cursor: "pointer", fontSize: 10,
-                  fontFamily: "sans-serif", fontWeight: sel ? "bold" : "normal",
+                  fontFamily: FONT_UI, fontWeight: sel ? "bold" : "normal",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2
                 }}>
                   <span style={{ fontSize: 12 }}>U{bookInfo(u).num}</span>
@@ -1631,7 +1658,7 @@ function App() {
           </div>
 
           {/* Book 3 */}
-          <p style={{ color: "#0277BD", fontSize: 11, margin: "0 0 6px 0", fontFamily: "sans-serif", fontWeight: "bold", letterSpacing: 1 }}>{t("libro3", lang)}</p>
+          <p style={{ color: "#0277BD", fontSize: 11, margin: "0 0 6px 0", fontFamily: FONT_UI, fontWeight: "bold", letterSpacing: 1 }}>{t("libro3", lang)}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
             {units.filter(u => bookInfo(u)?.book === 3).map(u => {
               const uc = UNIT_COLORS[u];
@@ -1642,7 +1669,7 @@ function App() {
                   padding: "8px 4px", borderRadius: 10, border: `2px solid ${sel ? uc.accent : "rgba(255,255,255,0.1)"}`,
                   background: sel ? uc.accent : "transparent",
                   color: sel ? "white" : "#888", cursor: "pointer", fontSize: 10,
-                  fontFamily: "sans-serif", fontWeight: sel ? "bold" : "normal",
+                  fontFamily: FONT_UI, fontWeight: sel ? "bold" : "normal",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2
                 }}>
                   <span style={{ fontSize: 12 }}>U{bookInfo(u).num}</span>
@@ -1652,12 +1679,12 @@ function App() {
             })}
           </div>
 
-          <p style={{ color: "#888", fontSize: 12, margin: "10px 0 0 0", fontFamily: "sans-serif", textAlign: "center" }}>
+          <p style={{ color: "#888", fontSize: 12, margin: "10px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
             {ALL_CARDS.filter(c => selectedUnits.includes(c.unit)).length} {t("tarjetas_seleccionadas", lang)}
           </p>
         </div>
 
-        <p onClick={resetProgress} style={{ textAlign: "center", color: "#555", fontSize: 11, marginTop: 8, cursor: "pointer", fontFamily: "sans-serif", textDecoration: "underline" }}>
+        <p onClick={resetProgress} style={{ textAlign: "center", color: "#555", fontSize: 11, marginTop: 8, cursor: "pointer", fontFamily: FONT_UI, textDecoration: "underline" }}>
           {t("reiniciar_progreso", lang)}
         </p>
       </div>
@@ -1700,7 +1727,7 @@ function App() {
 
   // Modo: lista de categorías de patrones
   if (mode === "patterns") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 64px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
           <span style={{ flex: 1 }} />
@@ -1729,7 +1756,7 @@ function App() {
               </span>
               <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
                 <span style={{ color: count > 0 ? cat.color : "#666", fontSize: 13, fontWeight: "bold" }}>{count} →</span>
-                <span style={{ color: pct > 0 ? "#4CAF50" : "#888", fontSize: 10, fontFamily: "sans-serif" }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
+                <span style={{ color: pct > 0 ? "#4CAF50" : "#888", fontSize: 10, fontFamily: FONT_UI }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
               </span>
             </button>
           );
@@ -1744,7 +1771,7 @@ function App() {
     const cat = selectedCategory;
     const cards = categoryCards(cat);
     return (
-      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: FONT_UI }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <button onClick={() => setMode("patterns")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("categorias_back", lang)}</button>
@@ -1795,7 +1822,7 @@ function App() {
   }
 
   if (mode === "buildResults") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 52, marginBottom: 16 }}>✏️</div>
         <h2 style={{ color: "#4DD0E1", fontSize: 24, marginBottom: 4 }}>{t("ronda_frases_completada", lang)}</h2>
@@ -1847,7 +1874,7 @@ function App() {
               flex: 1, padding: "7px 0", borderRadius: 10, border: `2px solid ${builderLevel === lv.v ? "#4DD0E1" : "rgba(255,255,255,0.15)"}`,
               background: builderLevel === lv.v ? "rgba(77,208,225,0.15)" : "transparent",
               color: builderLevel === lv.v ? "#4DD0E1" : "#888", fontSize: 11, fontWeight: builderLevel === lv.v ? "bold" : "normal",
-              cursor: "pointer", fontFamily: "sans-serif"
+              cursor: "pointer", fontFamily: FONT_UI
             }}>
               {lv.key ? t(lv.key, lang) : lv.label}
             </button>
@@ -1857,7 +1884,7 @@ function App() {
           width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
           background: buildableCards.length === 0 ? "#444" : "linear-gradient(135deg, #00838F, #4DD0E1)",
           color: "white", fontSize: 15, fontWeight: "bold",
-          cursor: buildableCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
+          cursor: buildableCards.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
           ✏️ {t("comenzar", lang)} · {buildableCards.length} {t("disponibles_suffix", lang)}
         </button>
@@ -1883,7 +1910,7 @@ function App() {
         <button onClick={() => startWriting(true)} style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
-          background: "linear-gradient(135deg, #C6501F, #FF9D3D)", color: "white", cursor: "pointer", fontFamily: "sans-serif"
+          background: "linear-gradient(135deg, #C6501F, #FF9D3D)", color: "white", cursor: "pointer", fontFamily: FONT_UI
         }}>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{t("repasar_pendientes_hoy", lang)}</span>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{writeDueChars.length} →</span>
@@ -1896,7 +1923,7 @@ function App() {
           width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
           background: writableChars.length === 0 ? "#444" : "linear-gradient(135deg, #C6501F, #FF9D3D)",
           color: "white", fontSize: 15, fontWeight: "bold",
-          cursor: writableChars.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
+          cursor: writableChars.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
           🖌️ {t("comenzar", lang)} · {writableChars.length} {t("caracteres_suffix", lang)}
         </button>
@@ -1910,7 +1937,7 @@ function App() {
       <button onClick={() => { setMasteryKind("chars"); setMasteryFilter("all"); setMode("mastery"); }} style={{
         display: "block", width: "100%", marginTop: 14, padding: "10px 0", borderRadius: 12,
         border: "1px solid rgba(255,255,255,0.15)", background: "none",
-        color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: "sans-serif"
+        color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: FONT_UI
       }}>
         {t("ver_que_caracteres_domino", lang)}
       </button>
@@ -1925,7 +1952,7 @@ function App() {
         <button onClick={() => startVocab(true)} style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "12px 16px", borderRadius: 14, marginBottom: 10, border: "none",
-          background: "linear-gradient(135deg, #00ACC1, #4DD0E1)", color: "white", cursor: "pointer", fontFamily: "sans-serif"
+          background: "linear-gradient(135deg, #00ACC1, #4DD0E1)", color: "white", cursor: "pointer", fontFamily: FONT_UI
         }}>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{t("repasar_pendientes_hoy", lang)}</span>
           <span style={{ fontSize: 13, fontWeight: "bold" }}>{vocabDueCards.length} →</span>
@@ -1936,7 +1963,7 @@ function App() {
           width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
           background: vocabCards.length === 0 ? "#444" : "linear-gradient(135deg, #00ACC1, #4DD0E1)",
           color: "white", fontSize: 15, fontWeight: "bold",
-          cursor: vocabCards.length === 0 ? "not-allowed" : "pointer", fontFamily: "sans-serif"
+          cursor: vocabCards.length === 0 ? "not-allowed" : "pointer", fontFamily: FONT_UI
         }}>
           🔤 {t("comenzar", lang)} · {vocabCards.length} {t("terminos_suffix", lang)}
         </button>
@@ -1950,7 +1977,7 @@ function App() {
       <button onClick={() => { setMasteryKind("vocab"); setMasteryFilter("all"); setMode("mastery"); }} style={{
         display: "block", width: "100%", marginTop: 14, padding: "10px 0", borderRadius: 12,
         border: "1px solid rgba(255,255,255,0.15)", background: "none",
-        color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: "sans-serif"
+        color: "#FFD09B", fontSize: 13, cursor: "pointer", fontFamily: FONT_UI
       }}>
         {t("ver_que_palabras_domino", lang)}
       </button>
@@ -1976,7 +2003,7 @@ function App() {
     const STATUS_COLORS = { mastered: "#4CAF50", learning: "#FF9D3D", new: "#888" };
 
     return (
-      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: FONT_UI }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <button onClick={() => setMode(isVocab ? "vocabHub" : "writingHub")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
@@ -1988,12 +2015,12 @@ function App() {
             <button onClick={() => { setMasteryKind("vocab"); setMasteryFilter("all"); }} style={{
               flex: 1, padding: "8px 0", borderRadius: 10, border: `2px solid ${isVocab ? "#00ACC1" : "rgba(255,255,255,0.15)"}`,
               background: isVocab ? "rgba(0,172,193,0.15)" : "transparent", color: isVocab ? "#4DD0E1" : "#888",
-              fontSize: 13, fontWeight: isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: "sans-serif"
+              fontSize: 13, fontWeight: isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: FONT_UI
             }}>{t("tab_palabras", lang)}</button>
             <button onClick={() => { setMasteryKind("chars"); setMasteryFilter("all"); }} style={{
               flex: 1, padding: "8px 0", borderRadius: 10, border: `2px solid ${!isVocab ? "#C6501F" : "rgba(255,255,255,0.15)"}`,
               background: !isVocab ? "rgba(198,80,31,0.15)" : "transparent", color: !isVocab ? "#FF9D3D" : "#888",
-              fontSize: 13, fontWeight: !isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: "sans-serif"
+              fontSize: 13, fontWeight: !isVocab ? "bold" : "normal", cursor: "pointer", fontFamily: FONT_UI
             }}>{t("tab_caracteres", lang)}</button>
           </div>
 
@@ -2007,7 +2034,7 @@ function App() {
               <button key={f.key} onClick={() => setMasteryFilter(f.key)} style={{
                 padding: "6px 10px", borderRadius: 20, border: `1px solid ${masteryFilter === f.key ? "#FF9D3D" : "rgba(255,255,255,0.15)"}`,
                 background: masteryFilter === f.key ? "rgba(255,157,61,0.15)" : "transparent",
-                color: masteryFilter === f.key ? "#FF9D3D" : "#aaa", fontSize: 11, cursor: "pointer", fontFamily: "sans-serif"
+                color: masteryFilter === f.key ? "#FF9D3D" : "#aaa", fontSize: 11, cursor: "pointer", fontFamily: FONT_UI
               }}>{f.label}</button>
             ))}
           </div>
@@ -2046,7 +2073,7 @@ function App() {
   if (mode === "writing") {
     if (!writeChar) return null;
     return (
-      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: FONT_UI }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
@@ -2139,7 +2166,7 @@ function App() {
   if (mode === "mixed") {
     if (!mixedCard) return null;
     return (
-      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: FONT_UI }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
@@ -2219,7 +2246,7 @@ function App() {
     const targetChars = Array.from(buildCard.zh);
 
     return (
-      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: FONT_UI }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
 
           {/* Top bar */}
@@ -2257,7 +2284,7 @@ function App() {
                   width: "100%", minHeight: 60, background: "rgba(255,255,255,0.05)",
                   border: `2px solid ${wasCorrect ? "#4CAF50" : wasWrong ? "#F44336" : "rgba(255,255,255,0.15)"}`,
                   borderRadius: 14, padding: 14, fontSize: 26, color: "white",
-                  fontFamily: "sans-serif", resize: "none", marginBottom: 12, boxSizing: "border-box"
+                  fontFamily: FONT_UI, resize: "none", marginBottom: 12, boxSizing: "border-box"
                 }}
               />
 
@@ -2303,7 +2330,7 @@ function App() {
                       border: wasWrong ? `2px solid ${posOk ? "#4CAF50" : "#F44336"}` : "none",
                       background: wasCorrect ? "rgba(76,175,80,0.25)" : wasWrong ? (posOk ? "rgba(76,175,80,0.15)" : "rgba(244,67,54,0.25)") : "rgba(77,208,225,0.15)",
                       color: wasCorrect ? "#4CAF50" : wasWrong ? (posOk ? "#4CAF50" : "#F44336") : "#4DD0E1",
-                      cursor: wasCorrect ? "default" : "pointer", fontFamily: "sans-serif"
+                      cursor: wasCorrect ? "default" : "pointer", fontFamily: FONT_UI
                     }} disabled={wasCorrect}>
                       {tile.ch}
                     </button>
@@ -2330,7 +2357,7 @@ function App() {
                   <button key={tile.uid} onClick={() => tapPoolTile(tile)} style={{
                     fontSize: 26, padding: "8px 14px", borderRadius: 10,
                     border: `2px solid ${color2.accent}66`, background: color2.bg,
-                    color: "#1a0a00", cursor: "pointer", fontFamily: "sans-serif", fontWeight: "bold"
+                    color: "#1a0a00", cursor: "pointer", fontFamily: FONT_UI, fontWeight: "bold"
                   }}>
                     {tile.ch}
                   </button>
@@ -2394,7 +2421,7 @@ function App() {
   // Study mode
   if (!card) return null;
   return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: FONT_UI }}>
       <div style={{ maxWidth: 480, width: "100%" }}>
 
         {/* Top bar */}
@@ -2413,7 +2440,7 @@ function App() {
 
         {/* Card */}
         <div
-          onClick={() => !flipped && setFlipped(true)}
+          onClick={() => { if (!flipped) { haptic(8); setFlipped(true); } }}
           onPointerDown={onCardPointerDown}
           onPointerMove={onCardPointerMove}
           onPointerUp={onCardPointerUp}
@@ -2437,7 +2464,7 @@ function App() {
           {flipped && dragX !== 0 && (
             <span style={{
               position: "absolute", top: 14, [dragX > 0 ? "right" : "left"]: 14,
-              fontSize: 13, fontWeight: "bold", fontFamily: "sans-serif",
+              fontSize: 13, fontWeight: "bold", fontFamily: FONT_UI,
               color: dragX > 0 ? "#2E7D32" : "#C62828",
               opacity: Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1),
               pointerEvents: "none"
@@ -2446,7 +2473,7 @@ function App() {
             </span>
           )}
           {!flipped ? (
-            <>
+            <div key={`f${card.id}`} className="gwc-face">
               {isReference && (
                 <span style={{
                   background: `${color.accent}22`, border: `1px solid ${color.accent}55`, color: color.accent,
@@ -2479,9 +2506,9 @@ function App() {
               <div style={{ marginTop: 16, color: "#555", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
                 <span>👆</span> {isReference ? t("toca_revelar_referencia", lang) : t("toca_revelar", lang)}
               </div>
-            </>
+            </div>
           ) : (
-            <>
+            <div key={`b${card.id}`} className="gwc-face">
               {card.emoji && <div style={{ fontSize: 34, marginBottom: 4 }}>{card.emoji}</div>}
               <div style={{ fontSize: 38, fontWeight: "bold", color: color.accent, marginBottom: 4, textAlign: "center" }}>{back_zh}</div>
               {showPinyin && <div style={{ fontSize: 15, marginBottom: 6, color: TONE_COLORS_LIGHT[0] }}>{renderPinyinTone(back_py, false)}</div>}
@@ -2504,13 +2531,13 @@ function App() {
                   {showExample && <ExampleBox card={card} color={color} speak={speak} speaking={speaking} showPinyin={showPinyin} lang={lang} />}
                 </>
               )}
-            </>
+            </div>
           )}
         </div>
 
         {/* Rating buttons */}
         {flipped && (
-          <p style={{ textAlign: "center", color: "#555", fontSize: 11, margin: "14px 0 0 0", fontFamily: "sans-serif" }}>
+          <p style={{ textAlign: "center", color: "#555", fontSize: 11, margin: "14px 0 0 0", fontFamily: FONT_UI }}>
             {t("swipe_hint", lang)}
           </p>
         )}
@@ -2530,8 +2557,8 @@ function App() {
               { key: "la_se", value: RATING.know, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
             ].map(btn => (
               <button key={btn.value} onClick={() => rate(btn.value)} style={{
-                flex: 1, padding: "14px 4px", borderRadius: 14, border: `2px solid ${btn.color}66`,
-                background: btn.bg, color: btn.color, fontSize: 12, fontWeight: "bold",
+                flex: 1, minHeight: 56, padding: "14px 4px", borderRadius: 16, border: `2px solid ${btn.color}66`,
+                background: btn.bg, color: btn.color, fontSize: 13, fontWeight: "bold",
                 cursor: "pointer", transition: "transform 0.1s"
               }}>
                 {t(btn.key, lang)}
@@ -2550,8 +2577,8 @@ function App() {
                 {t("anterior", lang)}
               </button>
             )}
-            <button onClick={() => setFlipped(true)} style={{
-              flex: 1, padding: "14px 0", borderRadius: 14, border: "2px solid rgba(255,107,53,0.4)",
+            <button onClick={() => { haptic(8); setFlipped(true); }} style={{
+              flex: 1, minHeight: 52, padding: "14px 0", borderRadius: 14, border: "2px solid rgba(255,107,53,0.4)",
               background: "rgba(255,107,53,0.1)", color: "#FF9D3D", fontSize: 14, fontWeight: "bold", cursor: "pointer"
             }}>
               {isReference ? t("ver_explicacion", lang) : t("revelar", lang)}

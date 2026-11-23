@@ -8,18 +8,62 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="长城汉语">
 <meta name="theme-color" content="#1a0a00">
+<meta name="color-scheme" content="dark">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
 <link rel="manifest" href="./manifest.json">
 <title>长城汉语 · Flashcards</title>
 <style>
-  * { box-sizing: border-box; }
-  body { margin: 0; padding: 0; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { background: #1a0a00; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; padding: 0; background: #1a0a00; color: #fff;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none; /* sin rebote blanco al llegar al borde */
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; /* se siente app, no página */
+  }
+  input, textarea { -webkit-user-select: text; user-select: text; font-size: 16px; /* evita el zoom automático de iOS */ }
+  button { font-family: inherit; touch-action: manipulation; /* sin retardo de doble toque */ }
+  button:not(:disabled) { transition: transform .12s ease, filter .12s ease, background-color .2s ease; }
+  button:not(:disabled):active { transform: scale(.96); filter: brightness(1.15); }
+  button:disabled { opacity: .45; }
+  :focus-visible { outline: 2px solid #FF9D3D; outline-offset: 2px; }
+  :focus:not(:focus-visible) { outline: none; }
+
+  /* Pantallas: respetan la barra de estado / notch (status-bar translúcida) y la altura dinámica del móvil */
+  #root > div {
+    min-height: calc(100vh - env(safe-area-inset-top, 0px)) !important;
+    min-height: calc(100dvh - env(safe-area-inset-top, 0px)) !important;
+    padding-top: calc(var(--pt, 20px) + env(safe-area-inset-top, 0px)) !important;
+  }
+
+  /* Cara de la tarjeta: giro corto al revelar y entrada al cambiar de tarjeta */
+  .gwc-face {
+    display: flex; flex-direction: column; align-items: center; width: 100%;
+    animation: gwcFace .28s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes gwcFace {
+    from { opacity: 0; transform: perspective(700px) rotateY(-16deg) scale(.97); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Pantalla de carga mientras Babel compila la app (evita el "pantallazo" vacío) */
+  .gwc-splash { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: linear-gradient(135deg,#1a0a00,#3d1a00,#1a0a00); }
+  .gwc-splash b { font-size: 44px; letter-spacing: 4px; color: #FF9D3D; font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif; }
+  .gwc-splash i { width: 42px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.15); overflow: hidden; position: relative; }
+  .gwc-splash i::after { content: ""; position: absolute; inset: 0; width: 40%; background: #FF6B35; border-radius: 2px; animation: gwcLoad 1s ease-in-out infinite; }
+  @keyframes gwcLoad { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
 </style>
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.8/babel.min.js"></script>
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><div class="gwc-splash"><b>长城汉语</b><i></i></div></div>
 
 <!-- data.js: tarjetas y colores. Es el ÚNICO archivo que se reemplaza al agregar unidades nuevas. -->
 <script src="data.js"></script>
