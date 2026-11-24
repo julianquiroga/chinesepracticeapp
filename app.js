@@ -29,6 +29,25 @@ const UI_STRINGS = {
   sin_audio: { es: "Esta tarjeta no tiene audio disponible", en: "This card has no audio available", fr: "Cette carte n'a pas d'audio disponible" },
   menu_back: { es: "← Menú", en: "← Menu", fr: "← Menu" },
   categorias_back: { es: "← Categorías", en: "← Categories", fr: "← Catégories" },
+  explorar_title: { es: "Explorar vocabulario", en: "Explore vocabulary", fr: "Explorer le vocabulaire" },
+  explorar_desc: { es: "Toca cualquier palabra para escucharla, ver sus tonos y un ejemplo.", en: "Tap any word to hear it, see its tones and an example.", fr: "Touchez un mot pour l'écouter, voir ses tons et un exemple." },
+  buscar_placeholder: { es: "Buscar hanzi, pinyin o significado", en: "Search hanzi, pinyin or meaning", fr: "Chercher hanzi, pinyin ou sens" },
+  sin_resultados: { es: "Sin resultados", en: "No results", fr: "Aucun résultat" },
+  mostrar_mas: { es: "Mostrar más", en: "Show more", fr: "Afficher plus" },
+  audio_normal: { es: "Normal", en: "Normal", fr: "Normal" },
+  audio_lento: { es: "Lento", en: "Slow", fr: "Lent" },
+  contorno_tonal: { es: "Contorno tonal por sílaba", en: "Tone contour per syllable", fr: "Contour tonal par syllabe" },
+  ejemplo_contexto: { es: "Ejemplo en contexto", en: "Example in context", fr: "Exemple en contexte" },
+  escuchar_frase: { es: "Escuchar frase", en: "Listen to sentence", fr: "Écouter la phrase" },
+  practicar_trazo: { es: "Practicar trazo", en: "Practice strokes", fr: "Pratiquer les traits" },
+  estudiar_tarjeta: { es: "Estudiar tarjeta", en: "Study card", fr: "Étudier la carte" },
+  arquitectura: { es: "Arquitectura de la oración", en: "Sentence architecture", fr: "Architecture de la phrase" },
+  ojo_hispano: { es: "Ojo, error típico", en: "Watch out — common mistake", fr: "Attention — erreur typique" },
+  ponlo_prueba: { es: "Ponlo a prueba", en: "Test yourself", fr: "Testez-vous" },
+  quiz_prompt: { es: "Completa la frase", en: "Complete the sentence", fr: "Complétez la phrase" },
+  quiz_ok: { es: "¡Correcto!", en: "Correct!", fr: "Correct !" },
+  quiz_no: { es: "Casi — inténtalo otra vez", en: "Not quite — try again", fr: "Pas tout à fait — réessayez" },
+  quiz_retry: { es: "Intentar otra vez", en: "Try again", fr: "Réessayer" },
   niveles_suffix: { es: "niveles", en: "levels", fr: "niveaux" },
   agrupar_title: { es: "Organizar el contenido por", en: "Organize content by", fr: "Organiser le contenu par" },
   agrupar_units: { es: "Libros y unidades", en: "Books & units", fr: "Livres et unités" },
@@ -311,7 +330,7 @@ function useSpeech() {
     };
   }, []);
 
-  const speak = useCallback((text) => {
+  const speak = useCallback((text, rate = 0.85) => {
     if (!text) return;
     setSpeechError(false);
     window.speechSynthesis.cancel();
@@ -322,7 +341,7 @@ function useSpeech() {
     setTimeout(() => {
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = "zh-CN";
-      utt.rate = 0.85;
+      utt.rate = rate;
       utt.pitch = 1;
       if (voiceRef.current) utt.voice = voiceRef.current;
       let handled = false;
@@ -669,6 +688,11 @@ const ICON_PATHS = {
   bulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
   eye: '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>',
   trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
   settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
 };
 function Icon({ name, size = 22, stroke = 2 }) {
@@ -1412,6 +1436,26 @@ function App() {
 
   const MIXED_MIN_SIZE = 12; // si hay menos pendientes que esto, se completa con tarjetas no vencidas
 
+  // Desde el explorador: practicar el trazo de una palabra o estudiar solo su tarjeta.
+  const practiceWordStrokes = (card) => {
+    const chars = uniqueCharsFor(c => c.id === card.id);
+    if (!chars.length) return;
+    setWriteDeck(chars);
+    setWriteIdx(0);
+    setWriteComplete(false);
+    setWriteStats({ done: 0 });
+    setMode("writing");
+  };
+  const studyOneCard = (card) => {
+    setDeck([card]);
+    setCurrentIdx(0);
+    setFlipped(false);
+    setShowExample(false);
+    setRatings({});
+    setLastDeckKind("vocab");
+    setMode("study");
+  };
+
   const startMixed = () => {
     const dueIds = new Set(dueCards.map(c => c.id));
     let source = dueCards;
@@ -2011,27 +2055,7 @@ function App() {
           )}
 
           {cards.map(c => (
-            <div key={c.id} style={{
-              background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: "14px 16px", marginBottom: 10,
-              borderLeft: `4px solid ${cat.color}`
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                <div>
-                  <span style={{ display: "inline-block", color: cat.color, fontSize: 10, fontWeight: "bold", background: `${cat.color}18`, borderRadius: 20, padding: "2px 8px", marginBottom: 6 }}>
-                    {displayUnitName(c, lang)}
-                  </span>
-                  <p style={{ color: "white", fontSize: 17, fontWeight: "bold", margin: "0 0 2px 0" }}>{c.zh}</p>
-                  {showPinyin && <p style={{ fontSize: 12, fontStyle: "italic", margin: "0 0 6px 0", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(c.py, true)}</p>}
-                </div>
-                <SpeakButton text={c.zh.replace(/[❌✅]/g, "")} speak={speak} speaking={speaking} color={cat.color} lang={lang} />
-              </div>
-              <p style={{ color: "#ccc", fontSize: 13, margin: "0 0 8px 0", lineHeight: 1.4 }}>{cardText(c, "es", lang)}</p>
-              <div style={{ background: `${cat.color}12`, borderRadius: 10, padding: "8px 12px" }}>
-                <p style={{ color: cat.color, fontSize: 13, margin: "0 0 2px 0" }}>{c.exZh}</p>
-                {showPinyin && <p style={{ fontSize: 11, margin: "0 0 2px 0", fontStyle: "italic", color: TONE_COLORS_DARK[0] }}>{renderPinyinTone(c.exPy, true)}</p>}
-                <p style={{ color: "#aaa", fontSize: 12, margin: 0 }}>{cardText(c, "exEs", lang)}</p>
-              </div>
-            </div>
+            <PatternCardView key={c.id} card={c} cat={cat} lang={lang} speak={speak} showPinyin={showPinyin} />
           ))}
 
           <button onClick={() => practiceCategory(cat)} disabled={cards.length === 0} style={{
@@ -2162,11 +2186,26 @@ function App() {
     </HubScreen>
   );
 
+  if (mode === "explore") return (
+    <HubScreen title={t("explorar_title", lang)} icon="compass" titleColor="#26C6DA" mode="vocabHub" setMode={setMode} lang={lang}
+      description={t("explorar_desc", lang)}>
+      <ExploreScreen cards={vocabCards} lang={lang} speak={speak} statusOf={(id) => statusFor(id, progress)} showPinyin={showPinyin}
+        onPractice={practiceWordStrokes} onStudy={studyOneCard} />
+    </HubScreen>
+  );
+
   // Tab: Vocabulario — solo los términos, con su ejemplo como contexto
   if (mode === "vocabHub") return (
     <HubScreen title={t("vocab_title", lang)} icon="vocab" titleColor="#26C6DA" mode={mode} setMode={setMode} lang={lang}
       description={t("vocab_desc", lang)}>
       <ProgressSummary title={t("prog_title_vocab", lang)} counts={vocabCounts} lang={lang} />
+      <button onClick={() => setMode("explore")} disabled={vocabCards.length === 0} style={{
+        width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 16, marginBottom: 10,
+        background: "rgba(38,198,218,0.10)", border: "1px solid rgba(38,198,218,0.4)", color: "#4DD0E1", cursor: "pointer", fontFamily: FONT_UI
+      }}>
+        <Lbl icon="compass" size={20}><span style={{ fontSize: 15, fontWeight: 700 }}>{t("explorar_title", lang)}</span></Lbl>
+        <span style={{ fontSize: 13, fontWeight: 700 }}>{vocabCards.length} →</span>
+      </button>
       {vocabDueCards.length > 0 && (
         <button onClick={() => startVocab(true)} style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",

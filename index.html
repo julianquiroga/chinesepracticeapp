@@ -47,6 +47,12 @@
     to   { opacity: 1; transform: none; }
   }
 
+  /* Hoja inferior (detalle de palabra) */
+  .gwc-sheet-bg { animation: gwcFadeIn .2s ease both; }
+  .gwc-sheet { animation: gwcSheetUp .3s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes gwcFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes gwcSheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
   /* Pantalla de carga mientras Babel compila la app (evita el "pantallazo" vacío) */
   .gwc-splash { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(120% 60% at 50% -10%, #212734 0%, #12151C 55%, #0C0E13 100%); }
   .gwc-splash b { font-size: 44px; letter-spacing: 4px; color: #FF9D3D; font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif; }
@@ -76,6 +82,7 @@
 
 <!-- app.js: la interfaz y la lógica. Casi nunca cambia. -->
 <script type="text/babel" data-presets="react" src="app.js"></script>
+<script type="text/babel" data-presets="react" src="explore.js"></script>
 
 <script type="text/babel" data-presets="react">
   const root = ReactDOM.createRoot(document.getElementById('root'));
