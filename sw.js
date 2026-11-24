@@ -1,7 +1,7 @@
 // Service worker: cachea los recursos de la app para que funcione sin conexión
 // después de la primera carga (útil para practicar sin datos/wifi). Estrategia:
 // stale-while-revalidate — sirve de caché al instante y refresca en segundo plano.
-const CACHE_NAME = "gwc-v7";
+const CACHE_NAME = "gwc-v9";
 
 const SAME_ORIGIN_ASSETS = [
   "./",
@@ -14,6 +14,7 @@ const SAME_ORIGIN_ASSETS = [
   "./char-pinyin.js",
   "./hsk-data.js",
   "./grammar-tips.js",
+  "./grammar-map.js",
   "./hanzi-info.js",
   "./grammar-outline.js",
   "./manifest.json",

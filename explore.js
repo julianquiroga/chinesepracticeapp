@@ -376,6 +376,8 @@ function PatternCardView({ card, cat, lang, speak, showPinyin }) {
   const hasPy = parts && pyParts.length === parts.length;
   const speakText = card.zh.replace(/[❌✅]/g, "");
   const tip = (window.GRAMMAR_TIPS || {})[card.id];
+  const exIds = ((window.GRAMMAR_MAP && window.GRAMMAR_MAP.examples) || {})[card.id] || [];
+  const moreExamples = exIds.map(id => ALL_CARDS.find(c => c.id === id)).filter(Boolean);
   return (
     <div style={{ background: "rgba(255,255,255,0.05)", border: CARD_BORDER, borderRadius: 20, padding: 16, marginBottom: 14, boxShadow: `inset 4px 0 0 ${cat.color}` }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 8 }}>
@@ -456,6 +458,22 @@ function PatternCardView({ card, cat, lang, speak, showPinyin }) {
       )}
 
       <GrammarQuiz card={card} cat={cat} lang={lang} speak={speak} />
+
+      {moreExamples.length > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <p style={{ color: TEXT_3, fontSize: 11, fontWeight: 700, letterSpacing: 0.5, margin: "0 0 8px" }}>{t("mas_ejemplos", lang).toUpperCase()}</p>
+          {moreExamples.map(ex => (
+            <div key={ex.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div>
+                <div style={{ color: "#fff", fontSize: 16, fontWeight: 700 }}>{ex.zh}</div>
+                {showPinyin && <div style={{ fontSize: 12, fontStyle: "italic" }}>{renderPinyinTone(ex.py, true)}</div>}
+                <div style={{ color: TEXT_2, fontSize: 13 }}>{cardText(ex, "es", lang)}</div>
+              </div>
+              <SpeakButton text={ex.zh} speak={speak} speaking={false} color={cat.color} lang={lang} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -642,6 +660,7 @@ function HskLibrary({ lang, speak, statusOf, showPinyin, onPractice, onStudy, on
   React.useEffect(() => {
     let alive = true;
     loadHskOfficial(level).then(() => { hskVirtualCards(level); if (alive) setTick(x => x + 1); });
+    loadHskStrokes(level).then(() => { if (alive) setTick(x => x + 1); });
     return () => { alive = false; };
   }, [level]);
 

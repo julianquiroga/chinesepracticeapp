@@ -54,6 +54,7 @@ const UI_STRINGS = {
   radical_label: { es: "Radical", en: "Radical", fr: "Radical" },
   historia_title: { es: "Historia mnemotécnica:", en: "Memory story:", fr: "Histoire mnémotechnique :" },
   mnemo_note: { es: "Las historias son reglas para recordar, no etimología histórica. Radicales y componentes: Make Me a Hanzi.", en: "Stories are memory aids, not historical etymology. Radicals and components: Make Me a Hanzi.", fr: "Les histoires sont des aide-mémoire, pas de l'étymologie historique. Radicaux et composants : Make Me a Hanzi." },
+  mas_ejemplos: { es: "Más ejemplos", en: "More examples", fr: "Plus d'exemples" },
   ponlo_prueba: { es: "Ponlo a prueba", en: "Test yourself", fr: "Testez-vous" },
   quiz_prompt: { es: "Completa la frase", en: "Complete the sentence", fr: "Complétez la phrase" },
   quiz_ok: { es: "¡Correcto!", en: "Correct!", fr: "Correct !" },
@@ -765,7 +766,7 @@ const PATTERN_CATEGORIES = [
   { key: "ubicacion", icon: "🧭", label: "Ubicación y dirección", color: "#2E7D32", ids: [173,174,175,223,224,225,226,269,270,271,272,222,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457,1183] },
   { key: "preguntas", icon: "❓", label: "Preguntas especiales", color: "#C62828", ids: [170,171,172,176,268,273,166,458,459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,613,655,1254] },
   { key: "matices", icon: "🔀", label: "Palabras que se confunden", color: "#AD1457", ids: [184,185,227,228,229,249,285,255,486,487,488,490,492,493,494,495,496,497,498,499,500,501,502,503,505,506,507,508,509,510,511,512,513,514,515,516,517,599,612,627] },
-  { key: "estructura", icon: "✍️", label: "Estructura de oración", color: "#558B2F", ids: [165,169,298,299,312,313,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,601,615,641,642,643,1171,1172,1253,1267,1268] },
+  { key: "estructura", icon: "✍️", label: "Estructura de oración", color: "#558B2F", ids: [165,169,298,299,312,313,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,601,615,641,642,643,1171,1172,1253,1267,1268,614] },
   { key: "tonos", icon: "🔤", label: "Tonos y radicales", color: "#5E35B1", ids: [159,160,161,130,167,168,177,178,179,230,256,257] },
   { key: "clasificadores", icon: "🔢", label: "量词 · Measure words", color: "#F9A825", ids: [542,543,544,545,546,547,548,549,550,551,552,554,555,556,557,558,559,560,561,562,563,564,565,566,567] },
 ];
@@ -881,6 +882,25 @@ function loadHskOfficial(level) {
   }
   return HSK_LOADING[level];
 }
+// Trazos de los caracteres de las listas oficiales: acumulativo, porque una palabra de nivel N puede usar caracteres
+// que aparecen por primera vez en un nivel menor.
+const HSK_STROKES_LOADED = {};
+function loadHskStrokes(maxLevel) {
+  const ps = [];
+  for (let l = 1; l <= Math.min(maxLevel, 7); l++) {
+    if (!HSK_STROKES_LOADED[l]) {
+      HSK_STROKES_LOADED[l] = new Promise(resolve => {
+        const el = document.createElement("script");
+        el.src = `hsk/strokes-${l}.js`;
+        el.onload = resolve; el.onerror = resolve;
+        document.head.appendChild(el);
+      });
+    }
+    ps.push(HSK_STROKES_LOADED[l]);
+  }
+  return Promise.all(ps);
+}
+
 function hskVirtualCards(level) {
   if (HSK_VIRTUAL[level]) return HSK_VIRTUAL[level];
   const data = window.HSK_OFFICIAL && window.HSK_OFFICIAL[level];
@@ -896,7 +916,8 @@ function hskVirtualCards(level) {
     const id = 200000 + level * 10000 + parseInt(m[1], 10) + (m[2] ? (parseInt(m[2], 10) - 1) * 1000000 : 0);
     HSK_CARD_CACHE[id] = level;
     return { id, unit: 0, unitName: "HSK 3.0", kind: "vocab", hskExtra: true, pos: e[3], zh: e[1], py: e[2],
-      es: e[5] || e[4], en: e[4], fr: e[6] || e[4], exZh: "", exPy: "", exEs: "", exEn: "", exFr: "" };
+      es: e[5] || e[4], en: e[4], fr: e[6] || e[4],
+      exZh: e[7] || "", exPy: e[8] || "", exEn: e[9] || "", exEs: e[10] || e[9] || "", exFr: e[11] || e[9] || "" };
   });
   return HSK_VIRTUAL[level];
 }
@@ -1137,6 +1158,8 @@ function App() {
     selectedLevels.filter(l => l > 0).forEach(l => {
       if (!HSK_VIRTUAL[l]) loadHskOfficial(l).then(() => { hskVirtualCards(l); setHskTick(x => x + 1); });
     });
+    const maxLv = Math.max(0, ...selectedLevels);
+    if (maxLv > 0) loadHskStrokes(maxLv).then(() => setHskTick(x => x + 1));
   }, [groupBy, selectedLevels]);
   // Tarjetas disponibles: las de los libros, más (solo en modo HSK) las palabras oficiales de los niveles elegidos.
   const CARDS = React.useMemo(
@@ -1197,31 +1220,6 @@ function App() {
     if (!p) return "new";
     return p.box >= MAX_BOX ? "mastered" : "learning";
   };
-  // Caracteres que ya "desbloquean" tus unidades seleccionadas — se usa para
-  // decidir qué tarjetas de la unidad 30 (el cajón genérico de drills de
-  // sustitución, sin una unidad de origen propia) tiene sentido mostrar: son
-  // variantes de práctica que reutilizan vocabulario de varias unidades reales,
-  // así que en vez de mostrarlas siempre (lo que hacía que filtrar por unidad
-  // pareciera no hacer nada, porque son el 70% de las tarjetas de Patrones),
-  // solo se muestran si TODO su vocabulario ya está cubierto por lo seleccionado.
-  const knownChars = new Set();
-  CARDS.filter(inSel).forEach(c => {
-    const m = (c.zh || "").match(HAN_REGEX);
-    if (m) m.forEach(ch => knownChars.add(ch));
-  });
-  const isUnlockedDrill = (card) => {
-    const chars = (card.zh || "").match(/[一-鿿]/g) || [];
-    return chars.every(ch => knownChars.has(ch));
-  };
-
-  // Tarjetas de una categoría de Patrones, respetando las unidades seleccionadas
-  // en Opciones (igual que Flashcards/Construir/Vocabulario/Escritura) y
-  // ordenadas por unidad para reflejar el orden en que se van viendo en el curso.
-  const categoryCards = (cat) => ALL_CARDS
-    .filter(c => cat.ids.includes(c.id) && (c.unit === 30 ? isUnlockedDrill(c) : inSel(c)))
-    .sort((a, b) => a.unit - b.unit);
-  const categoryMastery = (cat) => masteryFor(categoryCards(cat));
-
   const resetProgress = () => {
     if (window.confirm(t("reiniciar_progreso_confirm", lang))) {
       setProgress({});
@@ -1239,7 +1237,8 @@ function App() {
   const [openPatternId, setOpenPatternId] = useState(null);
 
   // Estructuras de gramática "reales" (sin las variantes de práctica de la unidad 30) dentro de la selección.
-  const grammarCards = ALL_CARDS.filter(c => isPatternCard(c) && c.unit !== 30 && inSel(c));
+  const grammarHidden = new Set((window.GRAMMAR_MAP && window.GRAMMAR_MAP.hidden) || []);
+  const grammarCards = ALL_CARDS.filter(c => isPatternCard(c) && c.unit !== 30 && !grammarHidden.has(c.id) && inSel(c));
   const openPattern = (card, list) => {
     setPatternNavIds(list.map(c => c.id));
     setOpenPatternId(card.id);
@@ -1247,10 +1246,10 @@ function App() {
   };
 
   const practicePatterns = (list) => {
-    // además de las estructuras, suma las variantes de práctica ya desbloqueadas de sus mismas categorías
-    const catKeys = new Set(list.map(c => catOfCard(c).key));
-    const drills = ALL_CARDS.filter(c => c.unit === 30 && isUnlockedDrill(c) && catKeys.has(catOfCard(c).key));
-    const shuffled = shuffle([...list, ...drills]);
+    // además de las estructuras, suma las frases de práctica que pertenecen a cada una
+    const map = (window.GRAMMAR_MAP && window.GRAMMAR_MAP.practice) || {};
+    const extra = list.flatMap(c => (map[c.id] || []).map(id => ALL_CARDS.find(x => x.id === id)).filter(Boolean));
+    const shuffled = shuffle([...list, ...extra]);
     setDeck(shuffled);
     setCurrentIdx(0);
     setFlipped(false);
@@ -1520,7 +1519,7 @@ function App() {
 
   // Desde el explorador: practicar el trazo de una palabra o estudiar solo su tarjeta.
   const practiceWordStrokes = (card) => {
-    const chars = uniqueCharsFor(c => c.id === card.id);
+    const chars = uniqueCharsFor(() => true, [card]);
     if (!chars.length) return;
     setWriteDeck(chars);
     setWriteIdx(0);
