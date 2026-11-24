@@ -42,7 +42,18 @@ const UI_STRINGS = {
   practicar_trazo: { es: "Practicar trazo", en: "Practice strokes", fr: "Pratiquer les traits" },
   estudiar_tarjeta: { es: "Estudiar tarjeta", en: "Study card", fr: "Étudier la carte" },
   arquitectura: { es: "Arquitectura de la oración", en: "Sentence architecture", fr: "Architecture de la phrase" },
-  ojo_hispano: { es: "Ojo, error típico", en: "Watch out — common mistake", fr: "Attention — erreur typique" },
+  ojo_hispano: { es: "Ojo, hispanohablante", en: "Heads-up for Spanish speakers", fr: "Attention, hispanophones" },
+  error_tipico: { es: "Ojo, error típico", en: "Watch out — common mistake", fr: "Attention — erreur typique" },
+  gram_tip_badge: { es: "Ojo", en: "Tip", fr: "Astuce" },
+  gram_buscar: { es: "Buscar estructura o significado", en: "Search structure or meaning", fr: "Chercher une structure ou un sens" },
+  gram_sort_level: { es: "Por nivel HSK", en: "By HSK level", fr: "Par niveau HSK" },
+  gram_sort_unit: { es: "Por unidad", en: "By unit", fr: "Par unité" },
+  gram_practicar: { es: "Practicar {n}", en: "Practice {n}", fr: "Pratiquer {n}" },
+  gram_back: { es: "← Gramática", en: "← Grammar", fr: "← Grammaire" },
+  radicales_title: { es: "Anatomía de radicales", en: "Radical anatomy", fr: "Anatomie des radicaux" },
+  radical_label: { es: "Radical", en: "Radical", fr: "Radical" },
+  historia_title: { es: "Historia mnemotécnica:", en: "Memory story:", fr: "Histoire mnémotechnique :" },
+  mnemo_note: { es: "Las historias son reglas para recordar, no etimología histórica. Radicales y componentes: Make Me a Hanzi.", en: "Stories are memory aids, not historical etymology. Radicals and components: Make Me a Hanzi.", fr: "Les histoires sont des aide-mémoire, pas de l'étymologie historique. Radicaux et composants : Make Me a Hanzi." },
   ponlo_prueba: { es: "Ponlo a prueba", en: "Test yourself", fr: "Testez-vous" },
   quiz_prompt: { es: "Completa la frase", en: "Complete the sentence", fr: "Complétez la phrase" },
   quiz_ok: { es: "¡Correcto!", en: "Correct!", fr: "Correct !" },
@@ -126,12 +137,12 @@ const UI_STRINGS = {
   home_subtitle_welcome: { es: "Tú eliges el tema: repasa todas las tarjetas de tus unidades seleccionadas", en: "You choose the topic: review all the cards from your selected units", fr: "Vous choisissez le thème : révisez toutes les cartes de vos unités sélectionnées" },
   construir_frases: { es: "Construir frases", en: "Build sentences", fr: "Construire des phrases" },
   disponibles_suffix: { es: "disponibles", en: "available", fr: "disponibles" },
-  patrones_gramaticales: { es: "Patrones gramaticales", en: "Grammar patterns", fr: "Structures grammaticales" },
+  patrones_gramaticales: { es: "Gramática", en: "Grammar", fr: "Grammaire" },
   sesion_mixta: { es: "🔀 Sesión mixta · repaso + escritura intercalados", en: "🔀 Mixed session · review + writing interleaved", fr: "🔀 Session mixte · révision + écriture entrelacées" },
   dir_short_prompt_zh: { es: "ES→中", en: "EN→中", fr: "FR→中" },
   dir_short_zh_prompt: { es: "中→ES", en: "中→EN", fr: "中→FR" },
   tab_inicio: { es: "Inicio", en: "Home", fr: "Accueil" },
-  tab_patrones: { es: "Patrones", en: "Patterns", fr: "Structures" },
+  tab_patrones: { es: "Gramática", en: "Grammar", fr: "Grammaire" },
   tab_construir: { es: "Construir", en: "Build", fr: "Construire" },
   tab_escritura: { es: "Escritura", en: "Writing", fr: "Écriture" },
   tab_vocabulario: { es: "Vocabulario", en: "Vocabulary", fr: "Vocabulaire" },
@@ -151,8 +162,8 @@ const UI_STRINGS = {
   terminos_suffix: { es: "términos", en: "terms", fr: "termes" },
   vocab_empty: { es: "Todavía no hay vocabulario propio para las unidades seleccionadas. Prueba con unidades 13 a 27 en Opciones.", en: "There's no dedicated vocabulary for your selected units yet. Try units 13 to 27 in Settings.", fr: "Il n'y a pas encore de vocabulaire dédié pour vos unités sélectionnées. Essayez les unités 13 à 27 dans Options." },
   ver_que_palabras_domino: { es: "📊 Ver qué palabras domino", en: "📊 See which words I've mastered", fr: "📊 Voir les mots que je maîtrise" },
-  patrones_title: { es: "📐 Patrones gramaticales", en: "📐 Grammar patterns", fr: "📐 Structures grammaticales" },
-  patrones_desc: { es: "Las estructuras se repiten en varias unidades — están agrupadas por tipo y ordenadas por la unidad donde aparecen, dentro de tus unidades seleccionadas.", en: "These structures repeat across several units — they're grouped by type and ordered by the unit where they appear, within your selected units.", fr: "Ces structures se répètent dans plusieurs unités — elles sont groupées par type et classées par l'unité où elles apparaissent, parmi vos unités sélectionnées." },
+  patrones_title: { es: "Gramática", en: "Grammar", fr: "Grammaire" },
+  patrones_desc: { es: "Las estructuras clave del chino de tus unidades o niveles. Toca una para ver su fórmula, el error típico y practicarla.", en: "The key structures of Chinese in your selected units or levels. Tap one to see its formula, the typical mistake, and practice it.", fr: "Les structures clés du chinois de vos unités ou niveaux. Touchez-en une pour voir sa formule, l'erreur typique et vous entraîner." },
   patrones_suffix: { es: "patrones", en: "patterns", fr: "structures" },
   pattern_empty: { es: "Todavía no has seleccionado ninguna unidad con este patrón — elegí más unidades en Opciones para verlo aquí.", en: "You haven't selected a unit with this pattern yet — pick more units in Settings to see it here.", fr: "Vous n'avez pas encore sélectionné d'unité avec cette structure — choisissez plus d'unités dans Options pour la voir ici." },
   practicar_patrones: { es: "🎯 Practicar estos patrones", en: "🎯 Practice these patterns", fr: "🎯 Pratiquer ces structures" },
@@ -1160,15 +1171,22 @@ function App() {
   };
 
   // ---------- Modo: Patrones gramaticales ----------
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [patternNavIds, setPatternNavIds] = useState([]);
+  const [openPatternId, setOpenPatternId] = useState(null);
 
-  const openCategory = (cat) => {
-    setSelectedCategory(cat);
+  // Estructuras de gramática "reales" (sin las variantes de práctica de la unidad 30) dentro de la selección.
+  const grammarCards = ALL_CARDS.filter(c => isPatternCard(c) && c.unit !== 30 && inSel(c));
+  const openPattern = (card, list) => {
+    setPatternNavIds(list.map(c => c.id));
+    setOpenPatternId(card.id);
     setMode("patternDetail");
   };
 
-  const practiceCategory = (cat) => {
-    const shuffled = shuffle(categoryCards(cat));
+  const practicePatterns = (list) => {
+    // además de las estructuras, suma las variantes de práctica ya desbloqueadas de sus mismas categorías
+    const catKeys = new Set(list.map(c => catOfCard(c).key));
+    const drills = ALL_CARDS.filter(c => c.unit === 30 && isUnlockedDrill(c) && catKeys.has(catOfCard(c).key));
+    const shuffled = shuffle([...list, ...drills]);
     setDeck(shuffled);
     setCurrentIdx(0);
     setFlipped(false);
@@ -1705,7 +1723,7 @@ function App() {
           }}>
             <Icon name="patterns" size={26} />
             <span style={{ fontSize: 13, fontWeight: "bold", textAlign: "center" }}>{t("patrones_gramaticales", lang)}</span>
-            <span style={{ fontSize: 11, opacity: 0.85 }}>{PATTERN_CATEGORIES.reduce((sum, c) => sum + categoryCards(c).length, 0)}</span>
+            <span style={{ fontSize: 11, opacity: 0.85 }}>{grammarCards.length}</span>
           </button>
 
           <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(inSel).length === 0} style={{
@@ -1995,76 +2013,25 @@ function App() {
 
   // Modo: lista de categorías de patrones
   if (mode === "patterns") return (
-    <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", paddingBottom: "calc(20px + 76px + env(safe-area-inset-bottom, 0px))", fontFamily: FONT_UI }}>
-      <div style={{ maxWidth: 480, width: "100%" }}>
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
-          <span style={{ flex: 1 }} />
-          <span style={{ color: "#FF9D3D", fontSize: 16, fontWeight: "bold", textAlign: "center" }}><Lbl icon="patterns" size={19}>{noEmoji(t("patrones_title", lang))}</Lbl></span>
-          <span style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-            <SettingsGearButton setMode={setMode} />
-          </span>
-        </div>
-        <p style={{ color: TEXT_2, fontSize: 13, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
-          {t("patrones_desc", lang)}
-        </p>
-
-        {PATTERN_CATEGORIES.map(cat => {
-          const count = categoryCards(cat).length;
-          const pct = categoryMastery(cat);
-          return (
-            <button key={cat.key} onClick={() => openCategory(cat)} style={{
-              width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "16px 18px", borderRadius: 18, marginBottom: 10,
-              border: `1px solid ${cat.color}44`, background: `linear-gradient(135deg, ${cat.color}26, ${cat.color}0d)`,
-              boxShadow: `inset 4px 0 0 ${cat.color}`,
-              cursor: "pointer", textAlign: "left"
-            }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 24 }}>{cat.icon}</span>
-                <span style={{ color: "white", fontSize: 15, fontWeight: "bold" }}>{categoryLabel(cat, lang)}</span>
-              </span>
-              <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                <span style={{ color: count > 0 ? "#fff" : TEXT_3, background: count > 0 ? `${cat.color}66` : "rgba(255,255,255,0.06)", borderRadius: 12, padding: "2px 10px", fontSize: 13, fontWeight: "bold" }}>{count} →</span>
-                <span style={{ color: pct > 0 ? "#81C784" : TEXT_3, fontSize: 11, fontFamily: FONT_UI }}>{pct > 0 ? `⭐${pct}%` : "—"}</span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <TabBar activeMode={mode} setMode={setMode} lang={lang} />
-    </div>
+    <HubScreen title={t("patrones_title", lang)} icon="patterns" titleColor="#FF9D3D" mode={mode} setMode={setMode} lang={lang}
+      description={t("patrones_desc", lang)}>
+      <GrammarListScreen cards={grammarCards} lang={lang} statusOf={(id) => statusFor(id, progress)}
+        onOpen={openPattern} onPractice={practicePatterns} />
+    </HubScreen>
   );
 
-  // Modo: detalle de una categoría — referencia + practicar
-  if (mode === "patternDetail" && selectedCategory) {
-    const cat = selectedCategory;
-    const cards = categoryCards(cat);
+  if (mode === "patternDetail" && openPatternId != null) {
+    const navCards = patternNavIds.map(id => ALL_CARDS.find(c => c.id === id)).filter(Boolean);
+    const idx = Math.max(0, navCards.findIndex(c => c.id === openPatternId));
+    const card = navCards[idx];
+    if (!card) return null;
     return (
       <div style={{ minHeight: "100vh", background: SCREEN_BG, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 16px", fontFamily: FONT_UI }}>
         <div style={{ maxWidth: 480, width: "100%" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <button onClick={() => setMode("patterns")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("categorias_back", lang)}</button>
-            <span style={{ color: cat.color, fontSize: 13, fontWeight: "bold" }}>{cards.length} {t("patrones_suffix", lang)}</span>
-          </div>
-          <h2 style={{ color: "white", fontSize: 20, textAlign: "center", margin: "6px 0 20px 0" }}>{cat.icon} {categoryLabel(cat, lang)}</h2>
-
-          {cards.length === 0 && (
-            <p style={{ color: TEXT_3, fontSize: 13, textAlign: "center", lineHeight: 1.5, margin: "0 0 20px 0" }}>
-              {t("pattern_empty", lang)}
-            </p>
-          )}
-
-          {cards.map(c => (
-            <PatternCardView key={c.id} card={c} cat={cat} lang={lang} speak={speak} showPinyin={showPinyin} />
-          ))}
-
-          <button onClick={() => practiceCategory(cat)} disabled={cards.length === 0} style={{
-            width: "100%", padding: "16px 0", borderRadius: 16, border: "none", marginTop: 12,
-            background: cards.length === 0 ? "#444" : `linear-gradient(135deg, ${cat.color}, ${cat.color}cc)`, color: "white",
-            fontSize: 15, fontWeight: "bold", cursor: cards.length === 0 ? "not-allowed" : "pointer"
-          }}>
-            <Lbl icon="play" size={16}>{noEmoji(t("practicar_patrones", lang))}</Lbl>
-          </button>
+          <PatternDetailView card={card} index={idx} total={navCards.length} lang={lang} speak={speak} showPinyin={showPinyin}
+            onBack={() => setMode("patterns")}
+            onPrev={() => setOpenPatternId(navCards[Math.max(0, idx - 1)].id)}
+            onNext={() => setOpenPatternId(navCards[Math.min(navCards.length - 1, idx + 1)].id)} />
         </div>
       </div>
     );

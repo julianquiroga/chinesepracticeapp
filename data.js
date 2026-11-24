@@ -1455,8 +1455,8 @@ window.ALL_CARDS = [
   // Unidad 29 — Libro 3, unidad 7: 买衣服 (Ropa y compras)
   { id: 1255, unit: 29, unitName: "📗 L3 · Ropa y compras", zh: "我想买一件大衣", py: "Wǒ xiǎng mǎi yí jiàn dàyī", es: "Quiero comprar un abrigo",
     exZh: "我想买一件大衣。", exPy: "Wǒ xiǎng mǎi yí jiàn dàyī.", exEs: "Quiero comprar un abrigo.", en: "I want to buy an overcoat", exEn: "I want to buy an overcoat.", fr: "Je veux acheter un manteau", exFr: "Je veux acheter un manteau." },
-  { id: 1256, unit: 29, unitName: "📗 L3 · Ropa y compras", zh: "这件衣服很合适你", py: "Zhè jiàn yīfu hěn héshì nǐ", es: "Esta ropa te queda muy bien",
-    exZh: "这件衣服很合适你。", exPy: "Zhè jiàn yīfu hěn héshì nǐ.", exEs: "Esta ropa te queda muy bien.", en: "These clothes suit you very well", exEn: "These clothes suit you very well.", fr: "Ces vêtements te vont très bien", exFr: "Ces vêtements te vont très bien." },
+  { id: 1256, unit: 29, unitName: "📗 L3 · Ropa y compras", zh: "这件衣服你穿很合适", py: "Zhè jiàn yīfu nǐ chuān hěn héshì", es: "Esta ropa te queda muy bien",
+    exZh: "这件衣服你穿很合适。", exPy: "Zhè jiàn yīfu nǐ chuān hěn héshì.", exEs: "Esta ropa te queda muy bien.", en: "These clothes suit you very well", exEn: "These clothes suit you very well.", fr: "Ces vêtements te vont très bien", exFr: "Ces vêtements te vont très bien." },
   { id: 1257, unit: 29, unitName: "📗 L3 · Ropa y compras", zh: "年轻人喜欢去专卖店买衣服", py: "Niánqīngrén xǐhuan qù zhuānmàidiàn mǎi yīfu", es: "A los jóvenes les gusta comprar ropa en tiendas especializadas",
     exZh: "年轻人喜欢去专卖店买衣服。", exPy: "Niánqīngrén xǐhuan qù zhuānmàidiàn mǎi yīfu.", exEs: "A los jóvenes les gusta comprar ropa en tiendas especializadas.", en: "Young people like to buy clothes at specialty stores", exEn: "Young people like to buy clothes at specialty stores.", fr: "Les jeunes aiment acheter des vêtements dans des boutiques spécialisées", exFr: "Les jeunes aiment acheter des vêtements dans des boutiques spécialisées." },
   { id: 1258, unit: 29, unitName: "📗 L3 · Ropa y compras", zh: "我有时候去百货商场逛街", py: "Wǒ yǒu shíhou qù bǎihuò shāngchǎng guàngjiē", es: "A veces voy de compras al centro comercial",
