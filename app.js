@@ -1195,7 +1195,10 @@ function App() {
 
   const units = [...new Set(ALL_CARDS.map(c => c.unit))].sort((a,b)=>a-b);
 
-  const allDueCards = CARDS.filter(c => isDue(c.id, progress));
+  // Las frases sueltas de práctica de gramática (variantes) no se estudian como flashcards: viven bajo su estructura.
+  const grammarHidden = new Set((window.GRAMMAR_MAP && window.GRAMMAR_MAP.hidden) || []);
+  const STUDY_CARDS = CARDS.filter(c => !grammarHidden.has(c.id));
+  const allDueCards = STUDY_CARDS.filter(c => isDue(c.id, progress));
   // Tope diario opcional: evita sobrecargar al usuario con repasos infinitos en un solo día
   const dueCards = dailyCap > 0 ? allDueCards.slice(0, dailyCap) : allDueCards;
   const dueCount = dueCards.length;
@@ -1237,7 +1240,6 @@ function App() {
   const [openPatternId, setOpenPatternId] = useState(null);
 
   // Estructuras de gramática "reales" (sin las variantes de práctica de la unidad 30) dentro de la selección.
-  const grammarHidden = new Set((window.GRAMMAR_MAP && window.GRAMMAR_MAP.hidden) || []);
   const grammarCards = ALL_CARDS.filter(c => isPatternCard(c) && c.unit !== 30 && !grammarHidden.has(c.id) && inSel(c));
   const openPattern = (card, list) => {
     setPatternNavIds(list.map(c => c.id));
@@ -1490,7 +1492,7 @@ function App() {
   }, [pool.length, mode]);
 
   const startStudy = () => {
-    const filtered = CARDS.filter(inSel);
+    const filtered = STUDY_CARDS.filter(inSel);
     const shuffled = shuffle(filtered);
     setDeck(shuffled);
     setCurrentIdx(0);
@@ -1552,7 +1554,7 @@ function App() {
     const dueIds = new Set(dueCards.map(c => c.id));
     let source = dueCards;
     if (source.length < MIXED_MIN_SIZE) {
-      const filler = CARDS.filter(c => inSel(c) && !dueIds.has(c.id));
+      const filler = STUDY_CARDS.filter(c => inSel(c) && !dueIds.has(c.id));
       const shuffledFiller = shuffle(filler);
       const needed = MIXED_MIN_SIZE - source.length;
       source = [...source, ...shuffledFiller.slice(0, needed)];
@@ -1768,7 +1770,7 @@ function App() {
           color: "white", fontSize: 17, fontWeight: "bold", cursor: selCount === 0 ? "not-allowed" : "pointer",
           fontFamily: FONT_UI, letterSpacing: 0.5, boxShadow: "0 4px 20px rgba(255,107,53,0.35)"
         }}>
-          <Lbl icon="layers" size={21}>{noEmoji(t("flashcards_btn", lang))} · {CARDS.filter(inSel).length} {t("tarjetas_suffix", lang)}</Lbl>
+          <Lbl icon="layers" size={21}>{noEmoji(t("flashcards_btn", lang))} · {STUDY_CARDS.filter(inSel).length} {t("tarjetas_suffix", lang)}</Lbl>
         </button>
         <p style={{ textAlign: "center", color: TEXT_3, fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
           {hasHistory
@@ -1800,7 +1802,7 @@ function App() {
             <span style={{ fontSize: 11, opacity: 0.85 }}>{grammarCards.length}</span>
           </button>
 
-          <button onClick={startMixed} disabled={dueCards.length === 0 && CARDS.filter(inSel).length === 0} style={{
+          <button onClick={startMixed} disabled={dueCards.length === 0 && STUDY_CARDS.filter(inSel).length === 0} style={{
             gridColumn: "1 / -1", padding: "12px 8px", borderRadius: 16, border: "2px solid rgba(123,31,162,0.4)",
             background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
             cursor: "pointer", fontFamily: FONT_UI
@@ -1956,7 +1958,7 @@ function App() {
               </div>
             ))}
             <p style={{ color: TEXT_3, fontSize: 12, margin: "4px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
-              {CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
+              {STUDY_CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
             </p>
           </div>
         )}
@@ -2039,7 +2041,7 @@ function App() {
           </div>
 
           <p style={{ color: TEXT_3, fontSize: 12, margin: "10px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
-            {CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
+            {STUDY_CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
           </p>
         </div>
         )}
