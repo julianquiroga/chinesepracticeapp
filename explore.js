@@ -56,6 +56,19 @@ function useHanziInfo() {
 }
 const LANG_IDX = { es: 0, en: 1, fr: 2 };
 
+// Carga un archivo de datos la primera vez que se necesita y devuelve su objeto global.
+function useLazyData(src, globalName) {
+  const [ready, setReady] = React.useState(!!window[globalName]);
+  React.useEffect(() => {
+    if (window[globalName]) { setReady(true); return; }
+    const el = document.createElement("script");
+    el.src = src;
+    el.onload = () => setReady(true);
+    document.head.appendChild(el);
+  }, []);
+  return ready ? window[globalName] : null;
+}
+
 // Radical, componentes e historia mnemotécnica de cada carácter de una palabra.
 function CharAnatomy({ zh, py, lang, info }) {
   const tc = toneChars(zh, py);
@@ -192,12 +205,12 @@ function WordSheet({ card, topic, lang, speak, status, showPinyin, onClose, onPr
 }
 
 // ---------- Pantalla del explorador ----------
-function ExploreScreen({ cards, lang, speak, statusOf, showPinyin, onPractice, onStudy }) {
+function ExploreScreen({ cards, lang, speak, statusOf, showPinyin, onPractice, onStudy, topicFn }) {
   const [q, setQ] = React.useState("");
   const [topic, setTopic] = React.useState(null);
   const [openId, setOpenId] = React.useState(null);
   const [limit, setLimit] = React.useState(60);
-  const topicOf = (c) => displayUnitName(c, lang).split("·").pop().trim();
+  const topicOf = topicFn || ((c) => displayUnitName(c, lang).split("·").pop().trim());
 
   const topics = React.useMemo(() => {
     const m = new Map();
@@ -488,6 +501,7 @@ function GrammarListScreen({ cards, lang, statusOf, onOpen, onPractice }) {
   const [catKey, setCatKey] = React.useState(null);
   const [sort, setSort] = React.useState("level");
   const [q, setQ] = React.useState("");
+  const [view, setView] = React.useState("mine");
   const tips = window.GRAMMAR_TIPS || {};
 
   const catCounts = new Map();
@@ -523,8 +537,23 @@ function GrammarListScreen({ cards, lang, statusOf, onOpen, onPractice }) {
   });
 
   const ordered = groups.flatMap(g => g.items);
+  const viewToggle = (
+    <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 14, padding: 3, marginBottom: 12 }}>
+      {[["mine", "gram_view_mine"], ["official", "gram_view_official"]].map(([k, key]) => (
+        <button key={k} onClick={() => setView(k)} style={{
+          flex: 1, border: "none", cursor: "pointer", borderRadius: 11, padding: "9px 6px", fontSize: 13, fontFamily: FONT_UI, fontWeight: view === k ? 700 : 500,
+          background: view === k ? "rgba(255,255,255,0.14)" : "transparent", color: view === k ? "#fff" : TEXT_3,
+        }}>{t(key, lang)}</button>
+      ))}
+    </div>
+  );
+  if (view === "official") {
+    return <div>{viewToggle}<GrammarOutline lang={lang} onSearch={(key) => { setQ(key); setCatKey(null); setView("mine"); }} /></div>;
+  }
+
   return (
     <div>
+      {viewToggle}
       <div style={{ position: "relative", marginBottom: 12 }}>
         <span style={{ position: "absolute", left: 14, top: 13, color: TEXT_3 }}><Icon name="search" size={18} /></span>
         <input value={q} onChange={e => setQ(e.target.value)} placeholder={t("gram_buscar", lang)} autoCapitalize="off" autoCorrect="off" spellCheck={false}
@@ -586,6 +615,165 @@ function PatternDetailView({ card, index, total, lang, speak, showPinyin, onBack
         <button onClick={onPrev} disabled={index === 0} style={{ ...nav, opacity: index === 0 ? 0.4 : 1 }}>{t("anterior", lang)}</button>
         <button onClick={onNext} disabled={index >= total - 1} style={{ ...nav, opacity: index >= total - 1 ? 0.4 : 1, background: GRAD_PRIMARY, border: "none" }}>{t("siguiente", lang)}</button>
       </div>
+    </div>
+  );
+}
+
+
+// ---------- Listas oficiales HSK 3.0: cobertura por nivel ----------
+const POS_LABELS = {
+  N: ["Sustantivo", "Noun", "Nom"], V: ["Verbo", "Verb", "Verbe"], Adj: ["Adjetivo", "Adjective", "Adjectif"],
+  Adv: ["Adverbio", "Adverb", "Adverbe"], Pron: ["Pronombre", "Pronoun", "Pronom"], Num: ["Numeral", "Numeral", "Numéral"],
+  M: ["Clasificador", "Measure word", "Classificateur"], Prep: ["Preposición", "Preposition", "Préposition"],
+  Conj: ["Conjunción", "Conjunction", "Conjonction"], Aux: ["Partícula", "Particle", "Particule"],
+  Int: ["Interjección", "Interjection", "Interjection"], Prefix: ["Afijo", "Affix", "Affixe"], Suffix: ["Afijo", "Affix", "Affixe"],
+  Phonetic: ["Onomatopeya", "Onomatopoeia", "Onomatopée"],
+};
+function posLabel(pos, lang) {
+  const key = (pos || "").split("/")[0];
+  const l = POS_LABELS[key];
+  return l ? l[LANG_IDX[lang] ?? 0] : (lang === "en" ? "Other" : lang === "fr" ? "Autre" : "Otros");
+}
+
+function HskLibrary({ lang, speak, statusOf, showPinyin, onPractice, onStudy, onStudyMissing }) {
+  const [level, setLevel] = React.useState(1);
+  const [cover, setCover] = React.useState("all");
+  const [tick, setTick] = React.useState(0);
+  React.useEffect(() => {
+    let alive = true;
+    loadHskOfficial(level).then(() => { hskVirtualCards(level); if (alive) setTick(x => x + 1); });
+    return () => { alive = false; };
+  }, [level]);
+
+  const data = window.HSK_OFFICIAL && window.HSK_OFFICIAL[level];
+  const { list, posByZh } = React.useMemo(() => {
+    if (!data) return { list: [], posByZh: new Map() };
+    const bookByZh = new Map();
+    ALL_CARDS.forEach(c => { if (c.kind === "vocab" && !bookByZh.has(c.zh)) bookByZh.set(c.zh, c); });
+    const virt = new Map((hskVirtualCards(level) || []).map(c => [c.zh, c]));
+    const pos = new Map(); const seen = new Set(); const out = [];
+    data.forEach(e => {
+      const book = bookByZh.get(e[1]);
+      const card = book || virt.get(e[1]);
+      if (!card || seen.has(card.id)) return;
+      seen.add(card.id); pos.set(e[1], e[3]);
+      out.push({ card, inBooks: !!book });
+    });
+    return { list: out, posByZh: pos };
+  }, [data, level, tick]);
+
+  const inBooks = list.filter(x => x.inBooks).length;
+  const total = list.length;
+  const missing = list.filter(x => !x.inBooks).map(x => x.card);
+  const shown = list.filter(x => cover === "all" || (cover === "books" ? x.inBooks : !x.inBooks)).map(x => x.card);
+  const pct = total ? Math.round((inBooks / total) * 100) : 0;
+  const chip = (active) => ({
+    flexShrink: 0, minHeight: 34, padding: "6px 14px", borderRadius: 18, cursor: "pointer", fontFamily: FONT_UI, fontSize: 12,
+    border: `1px solid ${active ? "#FFA726" : "rgba(255,255,255,0.14)"}`,
+    background: active ? "rgba(255,167,38,0.16)" : "transparent", color: active ? "#FFA726" : TEXT_2, fontWeight: active ? 700 : 500,
+  });
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 10, scrollbarWidth: "none" }}>
+        {[1, 2, 3, 4, 5, 6, 7].map(l => (
+          <button key={l} onClick={() => { setLevel(l); setCover("all"); }} style={{ ...chip(level === l), color: level === l ? "#FFA726" : TEXT_2 }}>
+            {hskShort(l)} · {HSK_TOTALS[l]}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ background: "rgba(255,255,255,0.05)", border: CARD_BORDER, borderRadius: 18, padding: 16, margin: "6px 0 12px" }}>
+        {!data ? <p style={{ color: TEXT_3, fontSize: 13, margin: 0 }}>{t("hsklib_loading", lang)}</p> : (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+              <span style={{ color: TEXT_2, fontSize: 13, fontWeight: 600 }}>{hskShort(level)} · {tn("hsklib_cover", lang, inBooks).replace("{total}", total)}</span>
+              <span style={{ color: "#fff", fontSize: 24, fontWeight: 700 }}>{pct}%</span>
+            </div>
+            <div style={{ height: 10, borderRadius: 5, overflow: "hidden", background: "rgba(255,255,255,0.08)" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: "#66BB6A", transition: "width .5s ease" }} />
+            </div>
+            <button onClick={() => onStudyMissing(missing)} disabled={!missing.length} style={{
+              marginTop: 14, width: "100%", minHeight: 46, borderRadius: 14, border: "none", cursor: missing.length ? "pointer" : "not-allowed",
+              background: missing.length ? GRAD_PRIMARY : "#2a2f3a", color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: FONT_UI,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}><Icon name="play" size={15} />{t("hsklib_study_missing", lang)} ({missing.length})</button>
+          </>
+        )}
+      </div>
+
+      {data && (
+        <>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            {[["all", "hsklib_all", total], ["books", "hsklib_books", inBooks], ["missing", "hsklib_missing", missing.length]].map(([k, key, n]) => (
+              <button key={k} onClick={() => setCover(k)} style={chip(cover === k)}>{t(key, lang)} · {n}</button>
+            ))}
+          </div>
+          <ExploreScreen key={level + cover} cards={shown} lang={lang} speak={speak} statusOf={statusOf} showPinyin={showPinyin}
+            onPractice={onPractice} onStudy={onStudy} topicFn={(c) => posLabel(posByZh.get(c.zh), lang)} />
+          <p style={{ color: TEXT_3, fontSize: 11, lineHeight: 1.4, margin: "18px 0 0", textAlign: "center" }}>{t("hsklib_source", lang)}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+
+// ---------- Esquema oficial de gramática HSK 3.0 ----------
+function outlineKey(row) {
+  const text = [row[2], row[3], row[4]].join(" ");
+  const q = text.match(/[“"「]([一-鿿]{1,4})[”"」]/);
+  if (q) return q[1];
+  const after = (row[4].split(/[：:]/)[1] || row[4]);
+  const runs = (after.match(/[一-鿿]{1,3}/g) || []).filter(w => !GRAMMAR_LABELS.has(w));
+  const fromLabel = (row[2].match(/[一-鿿]{1,3}/g) || []).filter(w => !GRAMMAR_LABELS.has(w));
+  return runs[0] || fromLabel[0] || "";
+}
+
+function GrammarOutline({ lang, onSearch }) {
+  const G = useLazyData("grammar-outline.js", "HSK_GRAMMAR");
+  const [level, setLevel] = React.useState(1);
+  if (!G) return <p style={{ color: TEXT_3, fontSize: 13, textAlign: "center" }}>{t("hsklib_loading", lang)}</p>;
+  const li = LANG_IDX[lang] ?? 0;
+  const tr = (x) => (x && G.labels[x]) ? G.labels[x][li] : x;
+  const counts = {};
+  G.rows.forEach(r => { counts[r[0]] = (counts[r[0]] || 0) + 1; });
+  const groups = [];
+  G.rows.filter(r => r[0] === level).forEach(r => {
+    let g = groups.find(x => x.key === r[1]);
+    if (!g) { g = { key: r[1], rows: [] }; groups.push(g); }
+    g.rows.push(r);
+  });
+  const chip = (active) => ({
+    flexShrink: 0, minHeight: 34, padding: "6px 14px", borderRadius: 18, cursor: "pointer", fontFamily: FONT_UI, fontSize: 12,
+    border: `1px solid ${active ? "#FFA726" : "rgba(255,255,255,0.14)"}`,
+    background: active ? "rgba(255,167,38,0.16)" : "transparent", color: active ? "#FFA726" : TEXT_2, fontWeight: active ? 700 : 500,
+  });
+  return (
+    <div>
+      <p style={{ color: TEXT_3, fontSize: 12, lineHeight: 1.45, margin: "0 0 10px" }}>{t("gram_outline_desc", lang)}</p>
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 10, scrollbarWidth: "none" }}>
+        {[1, 2, 3, 4, 5, 6, 7].map(l => <button key={l} onClick={() => setLevel(l)} style={chip(level === l)}>{hskShort(l)} · {counts[l] || 0}</button>)}
+      </div>
+      {groups.map(g => (
+        <div key={g.key} style={{ marginBottom: 16 }}>
+          <div style={{ color: TEXT_2, fontSize: 13, fontWeight: 700, margin: "6px 2px 8px" }}>{tr(g.key)} <span style={{ color: TEXT_3, fontWeight: 500 }}>· {g.rows.length}</span></div>
+          {g.rows.map((r, i) => {
+            const key = outlineKey(r);
+            return (
+              <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: CARD_BORDER, borderRadius: 14, padding: "10px 12px", marginBottom: 8, boxShadow: `inset 3px 0 0 ${HSK_COLORS[level]}` }}>
+                <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, lineHeight: 1.35 }}>{tr(r[2])}{r[3] ? <span style={{ color: TEXT_2, fontWeight: 500 }}> · {tr(r[3])}</span> : null}</div>
+                {r[4] && <div style={{ color: TEXT_2, fontSize: 14, lineHeight: 1.5, marginTop: 4 }}>{r[4]}</div>}
+                {key && (
+                  <button onClick={() => onSearch(key)} style={{ marginTop: 8, background: "none", border: "none", color: "#FFA726", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT_UI, padding: 0, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <Icon name="search" size={13} />{t("gram_outline_search", lang)} “{key}”
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

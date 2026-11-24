@@ -1,7 +1,7 @@
 // Service worker: cachea los recursos de la app para que funcione sin conexión
 // después de la primera carga (útil para practicar sin datos/wifi). Estrategia:
 // stale-while-revalidate — sirve de caché al instante y refresca en segundo plano.
-const CACHE_NAME = "gwc-v6";
+const CACHE_NAME = "gwc-v7";
 
 const SAME_ORIGIN_ASSETS = [
   "./",
@@ -15,6 +15,7 @@ const SAME_ORIGIN_ASSETS = [
   "./hsk-data.js",
   "./grammar-tips.js",
   "./hanzi-info.js",
+  "./grammar-outline.js",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
@@ -68,7 +69,13 @@ self.addEventListener("fetch", (event) => {
       return cached;
     }
     try {
-      return await fetch(event.request);
+      const res = await fetch(event.request);
+      // Archivos que se cargan bajo demanda (listas HSK, radicales, esquema): se guardan al usarlos la primera vez.
+      if (res && res.ok && new URL(event.request.url).origin === self.location.origin) {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      }
+      return res;
     } catch (e) {
       return cached || Response.error();
     }

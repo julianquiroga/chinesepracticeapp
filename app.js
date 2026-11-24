@@ -59,6 +59,20 @@ const UI_STRINGS = {
   quiz_ok: { es: "¡Correcto!", en: "Correct!", fr: "Correct !" },
   quiz_no: { es: "Casi — inténtalo otra vez", en: "Not quite — try again", fr: "Pas tout à fait — réessayez" },
   quiz_retry: { es: "Intentar otra vez", en: "Try again", fr: "Réessayer" },
+  gram_view_mine: { es: "Mis estructuras", en: "My structures", fr: "Mes structures" },
+  gram_view_official: { es: "Esquema oficial HSK 3.0", en: "Official HSK 3.0 outline", fr: "Plan officiel HSK 3.0" },
+  gram_outline_desc: { es: "Lo que pide el estándar oficial HSK 3.0 en cada nivel. Toca un punto para buscarlo entre tus estructuras (si no aparece, aún no lo cubren tus libros).", en: "What the official HSK 3.0 standard asks for at each level. Tap a point to search your structures (if nothing shows up, your books don't cover it yet).", fr: "Ce que demande le standard officiel HSK 3.0 à chaque niveau. Touchez un point pour le chercher parmi vos structures (sinon, vos livres ne le couvrent pas encore)." },
+  gram_outline_search: { es: "Buscar", en: "Search", fr: "Chercher" },
+  hsk_oficiales: { es: "palabras oficiales", en: "official words", fr: "mots officiels" },
+  hsklib_title: { es: "Listas oficiales HSK 3.0", en: "Official HSK 3.0 lists", fr: "Listes officielles HSK 3.0" },
+  hsklib_desc: { es: "Todo el vocabulario que pide cada nivel del estándar HSK 3.0, y cuánto cubren ya tus libros.", en: "All the vocabulary each level of the HSK 3.0 standard asks for, and how much your books already cover.", fr: "Tout le vocabulaire que demande chaque niveau du standard HSK 3.0, et ce que vos livres couvrent déjà." },
+  hsklib_cover: { es: "{n} de {total} en tus libros", en: "{n} of {total} in your books", fr: "{n} sur {total} dans vos livres" },
+  hsklib_all: { es: "Todas", en: "All", fr: "Toutes" },
+  hsklib_books: { es: "En tus libros", en: "In your books", fr: "Dans vos livres" },
+  hsklib_missing: { es: "Me faltan", en: "Missing", fr: "Manquantes" },
+  hsklib_study_missing: { es: "Estudiar 20 que me faltan", en: "Study 20 I'm missing", fr: "Étudier 20 manquantes" },
+  hsklib_loading: { es: "Cargando lista…", en: "Loading list…", fr: "Chargement de la liste…" },
+  hsklib_source: { es: "Fuentes: listas HSK 3.0 (ivankra/hsk30, MIT) y significados del diccionario CC-CEDICT (CC BY-SA 4.0).", en: "Sources: HSK 3.0 lists (ivankra/hsk30, MIT) and CC-CEDICT dictionary meanings (CC BY-SA 4.0).", fr: "Sources : listes HSK 3.0 (ivankra/hsk30, MIT) et sens du dictionnaire CC-CEDICT (CC BY-SA 4.0)." },
   niveles_suffix: { es: "niveles", en: "levels", fr: "niveaux" },
   agrupar_title: { es: "Organizar el contenido por", en: "Organize content by", fr: "Organiser le contenu par" },
   agrupar_units: { es: "Libros y unidades", en: "Books & units", fr: "Livres et unités" },
@@ -398,6 +412,7 @@ function FrontPinyinReveal({ pinyin, cardId, showPinyin, lang }) {
 function ExampleBox({ card, color, speak, speaking, showPinyin, lang }) {
   const [showPy, setShowPy] = useState(false);
   const [showEs, setShowEs] = useState(false);
+  if (!card.exZh) return null;
   return (
     <div onClick={e => e.stopPropagation()} style={{
       marginTop: 10, background: `${color.accent}12`, borderRadius: 14,
@@ -848,14 +863,52 @@ function cardHsk(card) {
   if (!(card.id in HSK_CARD_CACHE)) HSK_CARD_CACHE[card.id] = hskLevelOfText(card.zh);
   return HSK_CARD_CACHE[card.id];
 }
+// ---------- Palabras oficiales HSK 3.0 que no están en los libros (tarjetas "virtuales") ----------
+// Los archivos hsk/words-N.js (11.109 términos) se cargan por nivel. Las palabras que aún no tienen tarjeta en los
+// libros se convierten en tarjetas de vocabulario (unidad 0) solo cuando ese nivel está seleccionado en modo HSK.
+const HSK_TOTALS = { 1: 508, 2: 770, 3: 970, 4: 995, 5: 1069, 6: 1139, 7: 5626 };
+const HSK_VIRTUAL = {};
+const HSK_LOADING = {};
+function loadHskOfficial(level) {
+  if (window.HSK_OFFICIAL && window.HSK_OFFICIAL[level]) return Promise.resolve();
+  if (!HSK_LOADING[level]) {
+    HSK_LOADING[level] = new Promise(resolve => {
+      const el = document.createElement("script");
+      el.src = `hsk/words-${level}.js`;
+      el.onload = resolve; el.onerror = resolve;
+      document.head.appendChild(el);
+    });
+  }
+  return HSK_LOADING[level];
+}
+function hskVirtualCards(level) {
+  if (HSK_VIRTUAL[level]) return HSK_VIRTUAL[level];
+  const data = window.HSK_OFFICIAL && window.HSK_OFFICIAL[level];
+  if (!data) return null;
+  const have = new Set(ALL_CARDS.filter(c => c.kind === "vocab").map(c => c.zh));
+  const seen = new Set();
+  HSK_VIRTUAL[level] = data.filter(e => {
+    if (have.has(e[1]) || seen.has(e[1])) return false;
+    seen.add(e[1]);
+    return true;
+  }).map(e => {
+    const m = e[0].match(/-(\d+)(?:#(\d+))?/);
+    const id = 200000 + level * 10000 + parseInt(m[1], 10) + (m[2] ? (parseInt(m[2], 10) - 1) * 1000000 : 0);
+    HSK_CARD_CACHE[id] = level;
+    return { id, unit: 0, unitName: "HSK 3.0", kind: "vocab", hskExtra: true, pos: e[3], zh: e[1], py: e[2],
+      es: e[5] || e[4], en: e[4], fr: e[6] || e[4], exZh: "", exPy: "", exEs: "", exEn: "", exFr: "" };
+  });
+  return HSK_VIRTUAL[level];
+}
+
 function hskShort(level) { return level === 0 ? "HSK ?" : level === 7 ? "HSK 7–9" : `HSK ${level}`; }
 
 // ---------- Escritura de trazos ----------
 const HAN_REGEX = /[一-鿿]/g;
-function uniqueCharsFor(inSelection) {
+function uniqueCharsFor(inSelection, pool = ALL_CARDS) {
   const seen = new Set();
   const chars = [];
-  ALL_CARDS.filter(inSelection).forEach(c => {
+  pool.filter(inSelection).forEach(c => {
     const matches = (c.zh || "").match(HAN_REGEX);
     if (!matches) return;
     matches.forEach(ch => {
@@ -1078,6 +1131,17 @@ function App() {
   // Filtro único de "qué tarjetas están seleccionadas": por unidades del libro o por nivel HSK 3.0.
   const inSel = (c) => groupBy === "hsk" ? selectedLevels.includes(cardHsk(c)) : selectedUnits.includes(c.unit);
   const selCount = groupBy === "hsk" ? selectedLevels.length : selectedUnits.length;
+  const [hskTick, setHskTick] = useState(0);
+  useEffect(() => {
+    if (groupBy !== "hsk") return;
+    selectedLevels.filter(l => l > 0).forEach(l => {
+      if (!HSK_VIRTUAL[l]) loadHskOfficial(l).then(() => { hskVirtualCards(l); setHskTick(x => x + 1); });
+    });
+  }, [groupBy, selectedLevels]);
+  // Tarjetas disponibles: las de los libros, más (solo en modo HSK) las palabras oficiales de los niveles elegidos.
+  const CARDS = React.useMemo(
+    () => groupBy === "hsk" ? ALL_CARDS.concat(selectedLevels.flatMap(l => HSK_VIRTUAL[l] || [])) : ALL_CARDS,
+    [groupBy, selectedLevels, hskTick]);
   const toggleLevel = (l) => setSelectedLevels(prev => prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l]);
   const [mode, setMode] = useState("menu");
   const [masteryKind, setMasteryKind] = useState("vocab"); // "vocab" | "chars" — qué lista muestra la pantalla "Dominio"
@@ -1108,7 +1172,7 @@ function App() {
 
   const units = [...new Set(ALL_CARDS.map(c => c.unit))].sort((a,b)=>a-b);
 
-  const allDueCards = ALL_CARDS.filter(c => isDue(c.id, progress));
+  const allDueCards = CARDS.filter(c => isDue(c.id, progress));
   // Tope diario opcional: evita sobrecargar al usuario con repasos infinitos en un solo día
   const dueCards = dailyCap > 0 ? allDueCards.slice(0, dailyCap) : allDueCards;
   const dueCount = dueCards.length;
@@ -1141,7 +1205,7 @@ function App() {
   // pareciera no hacer nada, porque son el 70% de las tarjetas de Patrones),
   // solo se muestran si TODO su vocabulario ya está cubierto por lo seleccionado.
   const knownChars = new Set();
-  ALL_CARDS.filter(inSel).forEach(c => {
+  CARDS.filter(inSel).forEach(c => {
     const m = (c.zh || "").match(HAN_REGEX);
     if (m) m.forEach(ch => knownChars.add(ch));
   });
@@ -1243,7 +1307,7 @@ function App() {
   const [hardResult, setHardResult] = useState(null);
   const [hardDiff, setHardDiff] = useState([]);
 
-  const buildableCards = ALL_CARDS.filter(c => inSel(c) && isGoodForBuilder(c));
+  const buildableCards = CARDS.filter(c => inSel(c) && isGoodForBuilder(c));
   const buildCard = buildDeck[buildIdx];
 
   const getDistractorChars = (correctChars, count) => {
@@ -1295,7 +1359,7 @@ function App() {
   const writeTargetRef = useRef(null);
   const writeWriterRef = useRef(null);
 
-  const writableChars = uniqueCharsFor(inSel);
+  const writableChars = uniqueCharsFor(inSel, CARDS);
   const writeDueChars = writableChars.filter(ch => isDue(ch, charProgress));
   const writeChar = writeDeck[writeIdx];
 
@@ -1427,7 +1491,7 @@ function App() {
   }, [pool.length, mode]);
 
   const startStudy = () => {
-    const filtered = ALL_CARDS.filter(inSel);
+    const filtered = CARDS.filter(inSel);
     const shuffled = shuffle(filtered);
     setDeck(shuffled);
     setCurrentIdx(0);
@@ -1438,7 +1502,7 @@ function App() {
     setMode("study");
   };
 
-  const vocabCards = ALL_CARDS.filter(c => c.kind === "vocab" && inSel(c));
+  const vocabCards = CARDS.filter(c => c.kind === "vocab" && inSel(c));
   const vocabDueCards = vocabCards.filter(c => isDue(c.id, progress));
   const startVocab = (dueOnly = false) => {
     const source = dueOnly ? vocabDueCards : vocabCards;
@@ -1464,6 +1528,17 @@ function App() {
     setWriteStats({ done: 0 });
     setMode("writing");
   };
+  const studyMissing = (cards) => {
+    const pick = shuffle(cards).slice(0, 20);
+    if (!pick.length) return;
+    setDeck(pick);
+    setCurrentIdx(0);
+    setFlipped(false);
+    setShowExample(false);
+    setRatings({});
+    setLastDeckKind("vocab");
+    setMode("study");
+  };
   const studyOneCard = (card) => {
     setDeck([card]);
     setCurrentIdx(0);
@@ -1478,7 +1553,7 @@ function App() {
     const dueIds = new Set(dueCards.map(c => c.id));
     let source = dueCards;
     if (source.length < MIXED_MIN_SIZE) {
-      const filler = ALL_CARDS.filter(c => inSel(c) && !dueIds.has(c.id));
+      const filler = CARDS.filter(c => inSel(c) && !dueIds.has(c.id));
       const shuffledFiller = shuffle(filler);
       const needed = MIXED_MIN_SIZE - source.length;
       source = [...source, ...shuffledFiller.slice(0, needed)];
@@ -1694,7 +1769,7 @@ function App() {
           color: "white", fontSize: 17, fontWeight: "bold", cursor: selCount === 0 ? "not-allowed" : "pointer",
           fontFamily: FONT_UI, letterSpacing: 0.5, boxShadow: "0 4px 20px rgba(255,107,53,0.35)"
         }}>
-          <Lbl icon="layers" size={21}>{noEmoji(t("flashcards_btn", lang))} · {ALL_CARDS.filter(inSel).length} {t("tarjetas_suffix", lang)}</Lbl>
+          <Lbl icon="layers" size={21}>{noEmoji(t("flashcards_btn", lang))} · {CARDS.filter(inSel).length} {t("tarjetas_suffix", lang)}</Lbl>
         </button>
         <p style={{ textAlign: "center", color: TEXT_3, fontSize: 11, margin: "0 0 10px 0", fontFamily: FONT_UI }}>
           {hasHistory
@@ -1726,7 +1801,7 @@ function App() {
             <span style={{ fontSize: 11, opacity: 0.85 }}>{grammarCards.length}</span>
           </button>
 
-          <button onClick={startMixed} disabled={dueCards.length === 0 && ALL_CARDS.filter(inSel).length === 0} style={{
+          <button onClick={startMixed} disabled={dueCards.length === 0 && CARDS.filter(inSel).length === 0} style={{
             gridColumn: "1 / -1", padding: "12px 8px", borderRadius: 16, border: "2px solid rgba(123,31,162,0.4)",
             background: "rgba(123,31,162,0.1)", color: "#BA68C8", fontSize: 14, fontWeight: "bold",
             cursor: "pointer", fontFamily: FONT_UI
@@ -1865,7 +1940,7 @@ function App() {
                   {band.levels.map(l => {
                     const sel = selectedLevels.includes(l);
                     const cards = ALL_CARDS.filter(c => cardHsk(c) === l);
-                    const pct = masteryFor(cards);
+                    const total = HSK_TOTALS[l];
                     return (
                       <button key={l} onClick={() => toggleLevel(l)} style={{
                         minHeight: 64, padding: "8px 4px", borderRadius: 12, cursor: "pointer", fontFamily: FONT_UI,
@@ -1874,7 +1949,7 @@ function App() {
                         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2
                       }}>
                         <span style={{ fontSize: 14, fontWeight: "bold" }}>{l === 0 ? t("hsk_out", lang) : hskShort(l)}</span>
-                        <span style={{ fontSize: 11, opacity: 0.9 }}>{cards.length} {t("tarjetas_suffix", lang)}{pct > 0 ? ` · ${pct}%` : ""}</span>
+                        <span style={{ fontSize: 11, opacity: 0.9 }}>{total ? `${total} ${t("hsk_oficiales", lang)}` : `${cards.length} ${t("tarjetas_suffix", lang)}`}</span>
                       </button>
                     );
                   })}
@@ -1882,7 +1957,7 @@ function App() {
               </div>
             ))}
             <p style={{ color: TEXT_3, fontSize: 12, margin: "4px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
-              {ALL_CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
+              {CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
             </p>
           </div>
         )}
@@ -1965,7 +2040,7 @@ function App() {
           </div>
 
           <p style={{ color: TEXT_3, fontSize: 12, margin: "10px 0 0 0", fontFamily: FONT_UI, textAlign: "center" }}>
-            {ALL_CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
+            {CARDS.filter(inSel).length} {t("tarjetas_seleccionadas", lang)}
           </p>
         </div>
         )}
@@ -2153,6 +2228,14 @@ function App() {
     </HubScreen>
   );
 
+  if (mode === "hskLib") return (
+    <HubScreen title={t("hsklib_title", lang)} icon="trophy" titleColor="#FFA726" mode="vocabHub" setMode={setMode} lang={lang}
+      description={t("hsklib_desc", lang)}>
+      <HskLibrary lang={lang} speak={speak} statusOf={(id) => statusFor(id, progress)} showPinyin={showPinyin}
+        onPractice={practiceWordStrokes} onStudy={studyOneCard} onStudyMissing={studyMissing} />
+    </HubScreen>
+  );
+
   if (mode === "explore") return (
     <HubScreen title={t("explorar_title", lang)} icon="compass" titleColor="#26C6DA" mode="vocabHub" setMode={setMode} lang={lang}
       description={t("explorar_desc", lang)}>
@@ -2166,6 +2249,13 @@ function App() {
     <HubScreen title={t("vocab_title", lang)} icon="vocab" titleColor="#26C6DA" mode={mode} setMode={setMode} lang={lang}
       description={t("vocab_desc", lang)}>
       <ProgressSummary title={t("prog_title_vocab", lang)} counts={vocabCounts} lang={lang} />
+      <button onClick={() => setMode("hskLib")} style={{
+        width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 16, marginBottom: 10,
+        background: "rgba(255,167,38,0.10)", border: "1px solid rgba(255,167,38,0.4)", color: "#FFA726", cursor: "pointer", fontFamily: FONT_UI
+      }}>
+        <Lbl icon="trophy" size={20}><span style={{ fontSize: 15, fontWeight: 700 }}>{t("hsklib_title", lang)}</span></Lbl>
+        <span style={{ fontSize: 13, fontWeight: 700 }}>11 077 →</span>
+      </button>
       <button onClick={() => setMode("explore")} disabled={vocabCards.length === 0} style={{
         width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 16, marginBottom: 10,
         background: "rgba(38,198,218,0.10)", border: "1px solid rgba(38,198,218,0.4)", color: "#4DD0E1", cursor: "pointer", fontFamily: FONT_UI
@@ -2655,7 +2745,7 @@ function App() {
           <button onClick={() => setMode("menu")} style={{ color: "#aaa", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>{t("menu_back", lang)}</button>
           <span style={{ color: TEXT_2, fontSize: 13 }}>{currentIdx + 1} / {deck.length}</span>
           <span style={{ color: TEXT_2, fontSize: 12, background: "rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: 20, fontWeight: "bold" }}>
-            <Lbl gap={6}><LevelDot color={color.light || color.accent} />{groupBy === "hsk" ? hskShort(cardHsk(card)) : card.unit <= 10 || card.unit === 30 ? displayUnitName(card, lang) : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : displayUnitName(card, lang); })()}</Lbl>
+            <Lbl gap={6}><LevelDot color={color.light || color.accent} />{groupBy === "hsk" || card.hskExtra ? hskShort(cardHsk(card)) : card.unit <= 10 || card.unit === 30 ? displayUnitName(card, lang) : (() => { const b = bookInfo(card.unit); return b ? `L${b.book} · U${b.num}` : displayUnitName(card, lang); })()}</Lbl>
           </span>
         </div>
 
