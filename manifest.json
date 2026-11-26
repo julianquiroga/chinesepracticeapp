@@ -1,6 +1,6 @@
 {
-  "name": "长城汉语 · Flashcards",
-  "short_name": "长城汉语",
+  "name": "Nova Chinese · Flashcards",
+  "short_name": "Nova Chinese",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
