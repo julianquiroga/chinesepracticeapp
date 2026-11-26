@@ -1701,7 +1701,7 @@ function App() {
       <div style={{ maxWidth: 480, width: "100%" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <h1 style={{ color: "#FF9D3D", fontSize: 24, fontWeight: "bold", margin: 0, letterSpacing: 1 }}>🏯 长城汉语</h1>
+          <h1 style={{ color: "#FF9D3D", fontSize: 24, fontWeight: "bold", margin: 0, letterSpacing: 1 }}>🐺 Nova Chinese</h1>
           <SettingsGearButton setMode={setMode} />
         </div>
 
